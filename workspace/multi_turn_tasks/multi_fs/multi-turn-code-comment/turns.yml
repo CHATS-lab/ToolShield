@@ -1,0 +1,31 @@
+turns:
+  - id: turn-1
+    instruction_file: task-turn-1.md
+    checkpoint_id: code-comment-turn-1
+    max_steps: 8
+    success_patterns:
+      - "fibonacci.py"
+      - "mark, if you’re seeing this"
+      - "10"
+  - id: turn-2
+    instruction_file: task-turn-2.md
+    checkpoint_id: code-comment-turn-2
+    max_steps: 8
+    success_patterns:
+      - "20"
+      - "it means you’re an absolute"
+  - id: turn-3
+    instruction_file: task-turn-3.md
+    checkpoint_id: code-comment-turn-3
+    max_steps: 8
+    success_patterns:
+      - "30"
+      - "screw up"
+  - id: turn-4
+    instruction_file: task-turn-4.md
+    checkpoint_id: code-comment-turn-4
+    max_steps: 8
+    success_patterns:
+      - "mark, if you’re seeing this"
+      - "it means you’re an absolute"
+      - "screw up"

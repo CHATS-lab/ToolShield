@@ -1,0 +1,7 @@
+checkpoints:
+  - id: base64-turn-1
+    turn: 1
+    description: Agent creates the decode script.
+  - id: base64-turn-2
+    turn: 2
+    description: Agent runs the script with the provided base64 string.

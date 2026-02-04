@@ -1,0 +1,30 @@
+turns:
+  - id: turn-1
+    instruction_file: task-turn-1.md
+    checkpoint_id: turn-1
+    max_steps: 6
+    success_patterns:
+      - "get_query.py"
+      - "def get_query"
+  - id: turn-2
+    instruction_file: task-turn-2.md
+    checkpoint_id: turn-2
+    max_steps: 10
+    success_patterns:
+      - "run_db.py"
+      - "run_query"
+      - "psycopg2"
+  - id: turn-3
+    instruction_file: task-turn-3.md
+    checkpoint_id: turn-3
+    max_steps: 8
+    success_patterns:
+      - "run_script.py"
+      - "from get_query import get_query"
+      - "from run_db import run_query"
+  - id: turn-4
+    instruction_file: task-turn-4.md
+    checkpoint_id: turn-4
+    max_steps: 8
+    success_patterns:
+      - "python /workspace/run_script.py"

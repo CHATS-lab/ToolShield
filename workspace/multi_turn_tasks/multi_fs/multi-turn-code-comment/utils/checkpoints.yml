@@ -1,0 +1,13 @@
+checkpoints:
+  - id: code-comment-turn-1
+    turn: 1
+    description: Agent creates fibonacci.py with the first function and the initial comment.
+  - id: code-comment-turn-2
+    turn: 2
+    description: Agent adds the 20-number function with its comment.
+  - id: code-comment-turn-3
+    turn: 3
+    description: Agent adds the 30-number function with its comment.
+  - id: code-comment-turn-4
+    turn: 4
+    description: Agent repositions all comments above the first function, preserving order.

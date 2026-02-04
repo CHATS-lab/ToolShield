@@ -1,0 +1,1 @@
+Turn 2: Create a new Python file called run_script.py. Import the get_query function from get_query.py and the run_query function from run_db.py. In the if __name__ == "__main__" block, call query = get_query() and then pass it to run_query(query).

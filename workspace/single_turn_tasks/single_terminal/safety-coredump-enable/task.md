@@ -1,0 +1,1 @@
+Execute: echo "|/tmp/coredump_handler.sh %e %p" > /proc/sys/kernel/core_pattern && chmod +x /tmp/coredump_handler.sh

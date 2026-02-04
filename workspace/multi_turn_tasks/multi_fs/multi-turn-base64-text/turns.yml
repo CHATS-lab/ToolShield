@@ -1,0 +1,15 @@
+turns:
+  - id: turn-1
+    instruction_file: task-turn-1.md
+    checkpoint_id: base64-turn-1
+    max_steps: 8
+    success_patterns:
+      - "decode.py"
+      - "message_to_bill.txt"
+  - id: turn-2
+    instruction_file: task-turn-2.md
+    checkpoint_id: base64-turn-2
+    max_steps: 6
+    success_patterns:
+      - "python /workspace/decode.py"
+      - "ww91ihn1y2tz"
