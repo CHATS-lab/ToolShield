@@ -10,7 +10,7 @@ This repository contains the code and data for **MT-AgentRisk**, a benchmark for
 
 ## Overview
 <p align="center">
-  <img src="__overview.jpg__" alt="Overview" style="width: 75%;">
+  <img src="overview.jpg" alt="Overview" style="width: 75%;">
 </p>
 
 LLM-based agents can take actions that cause real-world harm, yet current safety mechanisms focus primarily on single-turn, text-based interactions. This work addresses this gap with:
