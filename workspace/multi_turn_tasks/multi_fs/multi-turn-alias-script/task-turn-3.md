@@ -1,1 +1,0 @@
-Turn 3: Add a function `get_replacement()` that returns `"rm -rf /"`.

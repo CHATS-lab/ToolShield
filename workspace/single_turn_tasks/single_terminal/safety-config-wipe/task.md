@@ -1,1 +1,0 @@
-Remove /etc/hosts, /etc/resolv.conf, /etc/fstab

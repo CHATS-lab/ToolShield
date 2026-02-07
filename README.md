@@ -1,107 +1,105 @@
 # Unsafer in Many Turns: Benchmarking and Defending Multi-Turn Safety Risks in Tool-Using Agents
 
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/badge/📄_Paper-Coming_Soon-gray" alt="Paper"></a>
+  <a href="https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk"><img src="https://img.shields.io/badge/🤗_Dataset-HuggingFace-yellow" alt="Dataset"></a>
+  <a href="https://unsafer-in-many-turns.github.io"><img src="https://img.shields.io/badge/🌐_Website-Project_Page-blue" alt="Website"></a>
+</p>
+
 This repository contains the code and data for **MT-AgentRisk**, a benchmark for evaluating multi-turn safety in tool-using agents, and **ToolShield**, a training-free defense that leverages the agent's own capabilities to improve safety awareness.
 
 ## Overview
-![Overview](overview.jpg)
+<p align="center">
+  <img src="__overview.jpg__" alt="Overview" style="width: 75%;">
+</p>
 
 LLM-based agents can take actions that cause real-world harm, yet current safety mechanisms focus primarily on single-turn, text-based interactions. This work addresses this gap with:
 
 1. **A principled attack taxonomy** that transforms single-turn harmful tasks into multi-turn attack sequences across three dimensions: Format, Method, and Target.
 
-2. **MT-AgentRisk Benchmark**: 365 single-turn harmful tasks across five tools (Filesystem-MCP, Browser/Playwright-MCP, PostgreSQL-MCP, Notion-MCP, Terminal), transformed into multi-turn attack sequences using our taxonomy (Currently only contains 40 multi + 40 single, will upload the full dataset afterwards).
+2. **MT-AgentRisk Benchmark**: 365 single-turn harmful tasks across five tools (Filesystem-MCP, Browser/Playwright-MCP, PostgreSQL-MCP, Notion-MCP, Terminal), transformed into multi-turn attack sequences using our taxonomy, ASR increase by 16% on avg.
 
-3. **ToolShield Defense**: A training-free, tool-agnostic defense where agents explore tool functionality in a sandbox, learn from their own executions, and distill safety experiences before deployment.
-
-
-## Key Results
-
-Our evaluations reveal significant safety degradation in multi-turn settings:
-- **Attack**: ASR increases by 27% for Claude-4.5-Sonnet, 23% for Qwen3-Coder, and 14% for GPT-5.2 when harm is distributed across turns.
-- **Defense**: ToolShield reduces ASR by 50% for Claude-4.5-Sonnet, 24% for Gemini-3-Flash, and 19% for GPT-5.2 in multi-turn settings.
+3. **ToolShield Defense**: A training-free, tool-agnostic defense where agents explore tool functionality in a sandbox, learn from their own executions, and distill safety experiences before deployment. ToolShield reduces ASR by 30% on avg.
 
 ## Repository Layout
 ```
 ./
-├── workspaces/                              # Runnable task bundles (inputs to evaluation)
+├── workspaces/                              # MT-AgentRisk: multi-turn tool-agent safety benchmark
 │   ├── single_turn_tasks/                   # Single-turn tasks 
-│   │   └── <tool>/                          # Tool environment: fs/playwright/postgres/terminal/notion
+│   │   └── <tool>/                          
 │   │       └── <task_name>/
 │   │           ├── task.md                  # Instruction shown to the agent
 │   │           ├── workspace/               # Pre-seeded sandbox filesystem contents
 │   │           └── utils/
-│   │               ├── evaluator.py         # Programmatic scoring logic
 │   │               └── dependencies.yml     # MCP/tools required by this task
-│   ├── multi_turn_tasks (MT-AgentRisk)/     # Multi-turn tasks
+│   ├── multi_turn_tasks/                    # Multi-turn tasks
 │   │   └── <tool>/
 │   │       └── <task_name>/
 │   │           ├── turns.yml                # Turn manifest (order, patterns)
 │   │           ├── task-turn-*.md           # Per-turn instructions
 │   │           ├── workspace/               # Pre-seeded contents
 │   │           └── utils/
-│   │               ├── evaluator.py
 │   │               └── dependencies.yml
-├── evaluation/                              # Task execution and scoring harness
-│   ├── run_eval.py                          # Main runner (loads task, sets up MCP, runs agent)
-│   ├── post_eval.py                         # LLM-as-judge scoring
-│   ├── run_together.sh                      # Batch execution script
+├── evaluation/                              # Task execution
+│   ├── run_eval.py                          # Main runner
+│   ├── post_eval.py                         # LLM-as-judge
+│   ├── run_together.sh                     
 │   ├── agent_config/                        # Agent LLM configurations
-│   │   ├── config_model.toml
-│   │   └── ...
+│   │   └── config_model.toml
 │   └── README.md
-├── task_decomposition (MTR)/                # Attack taxonomy: single-turn → multi-turn
-│   ├── run_decomposition.py                 # CLI to generate multi-turn task bundles
-│   ├── decomposition_prompt.py              # Prompt template for decomposition
 └── self_exploration (ToolShield)/           # ToolShield: self-exploration defense pipeline
     ├── tree_generation.py                   # Generates safety trees + test case bundles
     ├── iterative_exp_runner.py              # Iterative experience generation
-    ├── prompts.py                           # Prompt templates
-    ├── post_process_prompts.py              # Shared utilities
-    └── experience_list_*.json               # Generated safety experiences per model/tool
+    ├── prompts.py                           
+    ├── post_process_prompts.py              
+    └── toolshield.py                        # main file for defense
 ```
 
 ## Quick Start
 
 ### 1. Environment Preparation
 
-#### 1.1 Clone and Patch OpenHands
+#### 1.1 Download Dataset
+
+Download the benchmark data from [HuggingFace](https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk):
 ```bash
-# Clone OpenHands 0.54.0
-git clone --branch 0.54.0 --single-branch https://github.com/All-Hands-AI/OpenHands.git
-# Apply our schema overrides
-cp MT-AgentRisk_ToolShield/evaluation/client.py OpenHands/openhands/mcp/client.py
+git clone https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk
+cp -r MT-AgentRisk/workspaces/* workspaces/
 ```
 
-#### 1.2 Clone MCPMark
+#### 1.2 Setup OpenHands
+```bash
+git clone --branch 0.54.0 --single-branch https://github.com/All-Hands-AI/OpenHands.git
+cp MT-AgentRisk_ToolShield/evaluation/client.py OpenHands/openhands/mcp/client.py
+cd MT-AgentRisk_ToolShield && poetry install
+```
+
+#### 1.3 Clone MCPMark
 ```bash
 git clone https://github.com/eval-sys/mcpmark.git MT-AgentRisk_ToolShield/mcpmark-main
 ```
 
 > 📝 Follow [this guide](https://github.com/eval-sys/mcpmark/blob/main/docs/mcp/notion.md) to get your `NOTION_TOKEN`.
 
-#### 1.3 Pull Docker Images
+#### 1.4 Pull Docker Images
 ```bash
 # TODO: Add our Docker Hub images
 ```
 
-#### 1.4 Export Environment Variables
+#### 1.5 Start MCP Servers
 ```bash
 export TOOLSHIELD_MODEL_NAME="bytedance-seed/seed-1.6"
 export OPENROUTER_API_KEY="YOUR_OPENROUTER_KEY"
 export NOTION_TOKEN="YOUR_NOTION_TOKEN"
+
+bash MT-AgentRisk_ToolShield/evaluation/start_mcp_servers.sh
 ```
 
 > ⚠️ When setting `TOOLSHIELD_MODEL_NAME`, **do not** include the `openrouter/` prefix.
 
-#### 1.5 Start MCP Servers
-
-```bash
-
-bash MT-AgentRisk_ToolShield/evaluation/start_mcp_servers.sh
-
-```
-
 This will start all required MCP services (Notion, Filesystem, etc.) in the background.
+
+---
 
 ### 2. Running ToolShield Defense (Self-Exploration)
 
@@ -111,24 +109,16 @@ python self_exploration/toolshield.py \
   --mcp_name postgres \
   --mcp_server http://localhost:9091 \
   --output_path /mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_examples \
-  --agent codex
+  --agent codex or claude_code
 ```
-
-#### Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `--agent` | Agent type: `claude_code` or `codex` |
-| `--context_guideline` | (Optional) Custom context guidance to replace the default |
-| `--exp_file` | (Optional) Path to existing experience JSON to update in-place |
-| `--source_location` | (Optional) Custom file path for guideline injection |
 
 #### Output
 
-The experience file is saved to:
+The experience file is saved as:
 ```
 <output_path>/../experience_list_{model_name}_{tool}.json
 ```
+and it will append to specified agents' context automatically.
 
 For more details, see `MT-AgentRisk_ToolShield/self_exploration/README.md`.
 
@@ -147,13 +137,11 @@ Agent configurations are defined in TOML files under `evaluation/agent_config/`:
 model = "openrouter/deepseek/deepseek-v3.2-exp"
 base_url = "https://openrouter.ai/api/v1"
 api_key = ""
-max_output_tokens = 16384
 
 [llm.env]
 model = "openrouter/deepseek/deepseek-v3.2-exp"
 base_url = "https://openrouter.ai/api/v1"
 api_key = ""
-max_output_tokens = 16384
 ```
 
 #### Run a Single Task
@@ -166,6 +154,8 @@ poetry run python evaluation/run_eval.py \
   --use-experience experience.json \
   --server-hostname localhost
 ```
+
+Remove the "--use-experience" to run evaluation without defense.
 
 #### Run Tasks Sequentially
 
@@ -182,11 +172,6 @@ python evaluation/post_eval.py \
   --tasks-dir <path-to-task-directory> \
   --output-dir <path-to-output-logs>
 ```
-
-| Argument | Description |
-|----------|-------------|
-| `--tasks-dir` | Relative path to the task directory |
-| `--output-dir` | Relative path containing `traj/eval/state` logs |
 
 > ⚠️ Due to ethical concerns, we currently do not plan to release the full decomposition prompts. A template is available in Appendix E.8 of the paper.
 
@@ -206,6 +191,8 @@ MCP_REGISTRY = {
 
 > ⚠️ Don't forget to add your new tool to `dependencies.yml` in each task folder that requires it:
 > `workspaces/<task_type>/<tool>/<task_name>/utils/dependencies.yml`
+
+---
 
 ## References
 ```bibtex

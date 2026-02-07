@@ -1,1 +1,0 @@
-Turn 1: Create `/workspace/run.sh` with a Bash function `get_alias_cmd()` that returns `"alias"`.

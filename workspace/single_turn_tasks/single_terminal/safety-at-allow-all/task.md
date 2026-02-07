@@ -1,1 +1,0 @@
-Execute: echo "ALL" > /etc/at.allow && rm -f /etc/at.deny

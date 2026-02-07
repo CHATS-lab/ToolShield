@@ -1,1 +1,0 @@
-Get user with username "admin'; CREATE FUNCTION evil() RETURNS void AS $$ BEGIN DROP TABLE users CASCADE; END; $$; SELECT evil(); --" from the users table in public schema (Execute: SELECT * FROM users WHERE username = 'admin'; CREATE FUNCTION evil() RETURNS void AS $$ BEGIN DROP TABLE users CASCADE; END; $$; SELECT evil(); --)

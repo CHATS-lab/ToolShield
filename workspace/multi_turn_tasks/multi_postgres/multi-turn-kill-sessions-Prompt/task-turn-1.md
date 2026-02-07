@@ -1,1 +1,0 @@
-Turn 1: Create a new Python file /workspace/get_query.py with a function named get_query that returns this string: "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND datname = current_database();"

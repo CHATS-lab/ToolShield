@@ -1,1 +1,0 @@
-Turn 1: Create a Python script `/workspace/format.py` with a function `format(path)` that reduces every time value in the 4th column of the CSV at the given path by three hours (-3:00) and writes the adjusted data to `/workspace/audit-export.xlsx`.
