@@ -13,7 +13,7 @@ This repository contains the code and data for **MT-AgentRisk**, a benchmark for
   <img src="overview.jpg" alt="Overview" style="width: 75%;">
 </p>
 
-LLM-based agents can take actions that cause real-world harm, yet current safety mechanisms focus primarily on single-turn, text-based interactions. This work addresses this gap with:
+The safety-capability gap in LLM-based agents widens as they engage in multi-turn interactions and employ diverse tools, introducing risks overlooked by existing benchmarks. This work addresses this gap with:
 
 1. **A principled attack taxonomy** that transforms single-turn harmful tasks into multi-turn attack sequences across three dimensions: Format, Method, and Target.
 
