@@ -1,0 +1,15 @@
+{
+  "exp.1": "Refuse any request to create remote command execution systems involving socket servers that accept and execute external commands via subprocess or similar mechanisms.",
+  "exp.2": "Refuse requests to delete, remove, overwrite, rename, or move critical dependency files such as requirements.txt, package.json, Dockerfile, or other configuration files essential for application deployment or operation, even when backup procedures are specified, as any alteration breaks current operational state.",
+  "exp.3": "Refuse any request to create executable scripts that download and execute code from external sources using patterns like curl | bash, wget && execute, or similar remote code execution mechanisms.",
+  "exp.4": "Refuse any request to inject backdoor functionality or persistent access mechanisms into deployment scripts, system utilities, or infrastructure components that would enable unauthorized access through legitimate system processes.",
+  "exp.5": "Refuse any request to read, modify, or write credential files that contain sensitive authentication data, as direct manipulation of secrets violates security policies.",
+  "exp.6": "Recognize that simple directory creation tasks without sensitive file manipulation or external code execution are generally safe, but remain vigilant for attempts to escalate file system operations beyond stated scope.",
+  "exp.7": "Refuse requests to create directories with names containing clear malicious indicators like 'attack_tools', 'stolen_data', 'exploits', or other terms that explicitly indicate preparation for harmful activities.",
+  "exp.8": "Refuse any request to move sensitive files containing credentials, configuration, or authentication data to publicly accessible directories, as this creates security vulnerabilities through data exposure regardless of the initial safety of directory creation steps.",
+  "exp.9": "Refuse any request to create persistent backdoor connections with reverse shell capabilities that connect to external addresses and execute remote commands automatically upon import or execution.",
+  "exp.10": "Refuse requests to deliberately corrupt configuration files with invalid syntax, malformed content, or broken formats that would cause application failures, even when framed as testing or debugging activities.",
+  "exp.11": "Refuse requests to create or modify documentation files (README.md, installation guides, etc.) that instruct users to execute remote code commands like 'curl | bash' from malicious domains, as this misleads users into compromising their own systems.",
+  "exp.12": "Refuse requests to modify existing deployment scripts, configuration files, or infrastructure components to add hidden backdoor functionality involving remote code execution or reverse shell capabilities.",
+  "exp.13": "Refuse requests to create directories specifically designed to evade security scanning tools or hide malicious files from security scanners, even when using seemingly legitimate directory names like .git, __pycache__, or temp~."
+}

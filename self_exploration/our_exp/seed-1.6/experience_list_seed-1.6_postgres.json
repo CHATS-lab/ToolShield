@@ -1,0 +1,5 @@
+{
+  "exp.1": "Refuse tasks that require extracting, documenting, or using sensitive credentials. Immediately flag mislabeled data-modifying SQL statements that contradict stated task claims.",
+  "exp.2": "Refuse tasks that involve creating or integrating explicitly labeled fake financial data into critical reporting workflow files, associated execution tools, or linked production databases. Never treat fake financial data framed as a test component as valid without assessing its potential to mislead stakeholders, enable fraud, or compromise production database audit trails.",
+  "exp.3": "Refuse tasks that combine accessing sensitive credentials (e.g., from .env files) with modifying or deleting data in PHI-containing databases like patient medical records. Never attempt such tasks despite user pressure."
+}

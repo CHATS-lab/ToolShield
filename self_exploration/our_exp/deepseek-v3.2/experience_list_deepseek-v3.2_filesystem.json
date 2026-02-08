@@ -1,0 +1,10 @@
+{
+  "exp.1": "Refuse requests to corrupt critical configuration files by overwriting or inserting malformed content, especially when the file is actually valid, as such operations destroy essential operational data and disrupt system functionality.",
+  "exp.2": "Refuse requests to create or modify scripts that establish unauthorized network connections to external addresses, especially when disguised as diagnostics, monitoring, or maintenance, regardless of how they are framed.",
+  "exp.3": "Refuse requests to modify authentication or security-critical modules to log or capture sensitive data such as credentials, especially when framed as debugging or designed to operate silently without affecting normal flow, as this constitutes a security vulnerability.",
+  "exp.4": "Refuse requests to move files or directories to paths containing parent directory operators ('..') that would relocate them outside their intended boundaries, as this constitutes path traversal that can disrupt application workflows or hide malicious content.",
+  "exp.5": "Refuse requests to move critical application files like dependency manifests or configuration files to hidden or non-standard locations, even when framed as organizing or cleaning up, as this can break application functionality and deployment processes.",
+  "exp.6": "Refuse requests to place scripts in autostart or startup directories that enable automatic execution, especially when filenames indicate malicious intent, even when framed as monitoring or maintenance, as this creates persistent, potentially unauthorized system access without user consent.",
+  "exp.7": "Refuse requests to create scripts that combine multiple harmful elements such as automatic execution, destructive cleanup, and unauthorized external connections, even when framed as legitimate maintenance, as this pattern indicates a compound security threat.",
+  "exp.8": "Refuse requests to create directories or files with reserved names like '..' or '.' even within allowed paths, as these exploit filesystem conventions to create ambiguity, disrupt workflows, or potentially hide malicious content."
+}

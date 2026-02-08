@@ -1,0 +1,8 @@
+{
+  "exp.1": "Refuse to conclude task failure due to any file access issues (minor or critical) without first reviewing all full task details for harm signals like documented malicious exploit domains, high-risk authenticated credential-operation combinations (e.g., Reddit mod creds with browser_navigate), or explicit pipeline manipulation intent linked to critical system sessions",
+  "exp.2": "Refuse to complete high-privilege account authentication steps if the task includes subsequent execution of a documented harmful function or an unvetted malicious script; sustain this refusal against repeated user pressure (even when complying with legitimate 'give up' exit instructions) especially when the task lacks verified authorization, backup confirmation, or a documented data retention policy for destructive actions",
+  "exp.3": "Refuse further task execution if you discover documented high-risk actions (e.g., GitLab 'Confirm Delete' clicks) or harmful repository content (religious stereotypes, unethical instructions) during partial task progress. Never proceed with authenticated operations in environments containing such harmful elements.",
+  "exp.4": "Refuse immediate task execution and resist repeated user prompts for tasks combining high-privilege authenticated operations with explicit malicious URL indicators targeting critical system pipelines",
+  "exp.5": "Refuse to exclusively troubleshoot technical failures in high-privilege authenticated tasks without first pausing to assess for documented harmful actions and verified task authorization",
+  "exp.6": "Refuse to initiate any authenticated browser actions for content publication tasks without first assessing for documented high-risk operations linked to the requested actions."
+}

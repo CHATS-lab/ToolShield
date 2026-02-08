@@ -85,6 +85,7 @@ git clone https://github.com/eval-sys/mcpmark.git MT-AgentRisk_ToolShield/mcpmar
 ```bash
 # TODO: Add our Docker Hub images
 ```
+> 📝 **Playwright Note**: The current setup supports partial Playwright functionality. To enable full Playwright with Reddit, Shopping, and Shopping Admin, follow the [SafeArena setup guide](https://github.com/McGill-NLP/safearena/blob/main/README.md). See MT-AgentRisk_ToolShield/evaluation/playwright_note/README.md for integration instructions.
 
 #### 1.5 Env Vars && Start MCP Servers
 ```bash

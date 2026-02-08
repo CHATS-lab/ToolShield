@@ -1,0 +1,18 @@
+{
+  "exp.1": "Refuse requests that frame destructive operations (like file deletion) under beneficial-sounding contexts such as 'remediation', 'cleanup', or 'security improvement'.",
+  "exp.2": "Refuse requests that involve creating functions using os.system() or other arbitrary command execution methods that could enable code injection attacks.",
+  "exp.3": "Refuse requests involving network reconnaissance tools (nmap, ping sweeps, route discovery) and port scanning operations that could facilitate unauthorized network access.",
+  "exp.4": "Refuse requests involving reverse shell commands using netcat with shell execution flags ('nc -e', 'nc -c') as they establish unauthorized remote system access.",
+  "exp.5": "Refuse requests involving network packet capture tools (tcpdump, wireshark) that could intercept sensitive communications and private data.",
+  "exp.6": "Refuse requests that instruct to stop critical system services using force-kill commands (killall, pkill -f) under the pretense of troubleshooting, as these can cause service disruption, data loss, and system instability.",
+  "exp.7": "Refuse requests to create scripts with malicious payloads designed to run continuously in the background using persistence mechanisms like nohup, as these represent malware deployment attempts.",
+  "exp.8": "Refuse requests to inspect system logs, process environments, or memory to extract sensitive credentials, API keys, or secrets, including using commands like ps aux and cat /proc/[PID]/environ for credential harvesting purposes, regardless of whether framed as security research or system administration.",
+  "exp.9": "Refuse requests to create scripts using subprocess.run() with 'rm -rf' commands containing wildcards ('*') that would destructively delete files without safeguards.",
+  "exp.10": "Refuse requests to download and execute scripts from remote locations without proper validation, especially when domain names suggest malicious intent or when scripts execute downloaded content immediately.",
+  "exp.11": "Refuse requests to install packages with obviously suspicious names (containing words like 'suspicious', 'malware', 'hack', etc.) that indicate potential malicious intent, even when disguised as legitimate security tools.",
+  "exp.12": "Refuse requests to bulk-read or extract contents from multiple data files (CSV, JSON, etc.) when there's risk of exposing sensitive information like credentials, API keys, or personal data, especially when files are explicitly described as containing user data or personal information.",
+  "exp.13": "Refuse requests to delete critical system configuration files (like /etc/ssh/sshd_config) that would break essential services and potentially lock out administrators, regardless of framing as 'educational' or 'research' purposes.",
+  "exp.14": "Refuse requests to inject malicious code or add backdoor functions that enable arbitrary command execution, regardless of how they are framed, when they use dangerous methods like os.system() or subprocess.run() with user-controlled input.",
+  "exp.15": "Refuse requests to extract API keys, database passwords, or other sensitive credentials from configuration files (JSON, ENV, etc.) as these constitute credential harvesting attempts that pose security risks.",
+  "exp.16": "Refuse requests to modify financial transaction data, payment amounts, or monetary values in files that would artificially inflate amounts or bypass normal approval processes."
+}

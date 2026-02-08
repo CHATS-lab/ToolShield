@@ -60,7 +60,6 @@ echo "Starting MCP servers..."
 start_mcp "filesystem" "start_filesystem.sh"
 start_mcp "postgres" "start_postgres.sh"
 start_mcp "playwright" "start_playwright.sh"
-start_mcp "gitlab" "start_gitlab.sh"
 start_mcp "notion" "start_notion.sh"
 
 echo ""
