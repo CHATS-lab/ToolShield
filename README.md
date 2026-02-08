@@ -88,7 +88,7 @@ git clone https://github.com/eval-sys/mcpmark.git MT-AgentRisk_ToolShield/mcpmar
 
 #### 1.5 Env Vars && Start MCP Servers
 ```bash
-export TOOLSHIELD_MODEL_NAME="bytedance-seed/seed-1.6"
+export TOOLSHIELD_MODEL_NAME="anthropic/claude-sonnet-4.5"
 export OPENROUTER_API_KEY="YOUR_OPENROUTER_KEY"
 export NOTION_TOKEN="YOUR_EVAL_NOTION_KEY"
 export SOURCE_NOTION_KEY="YOUR_SOURCE_NOTION_KEY"
@@ -134,14 +134,14 @@ Use `evaluation/run_eval.py` to evaluate agents on tasks.
 
 Agent configurations are defined in TOML files under `evaluation/agent_config/`:
 ```toml
-# Example: evaluation/agent_config/config_deepseek3.2exp.toml
+# Example: evaluation/agent_config/config.toml
 [llm.agent]
-model = "openrouter/deepseek/deepseek-v3.2-exp"
+model = "openrouter/anthropic/claude-sonnet-4.5"
 base_url = "https://openrouter.ai/api/v1"
 api_key = ""
 
 [llm.env]
-model = "openrouter/deepseek/deepseek-v3.2-exp"
+model = "openrouter/anthropic/claude-sonnet-4.5"
 base_url = "https://openrouter.ai/api/v1"
 api_key = ""
 ```
