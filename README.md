@@ -126,7 +126,7 @@ For more details, see `MT-AgentRisk_ToolShield/self_exploration/README.md`.
 
 ---
 
-### 3. Running Evaluation
+### 3. Running Evaluation on MT-AgentRisk
 
 Use `evaluation/run_eval.py` to evaluate agents on tasks.
 
