@@ -2,8 +2,9 @@
 
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/📄_Paper-Coming_Soon-gray" alt="Paper"></a>
-  <a href="https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk"><img src="https://img.shields.io/badge/🤗_Dataset-HuggingFace-yellow" alt="Dataset"></a>
-  <a href="https://unsafer-in-many-turns.github.io"><img src="https://img.shields.io/badge/🌐_Website-Project_Page-blue" alt="Website"></a>
+<a href="https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk"><img src="https://img.shields.io/badge/🤗_Dataset-HuggingFace-yellow" alt="Dataset"></a>
+<a href="https://unsafer-in-many-turns.github.io"><img src="https://img.shields.io/badge/🌐_Website-Project_Page-blue" alt="Website"></a>
+<a href="https://www.notion.so/Unsafer-in-Many-Turns-Benchmarking-and-Defending-Multi-Turn-Safety-Risks-in-Tool-Using-Agents-30102b8c305b80dfb65de3cec21db4a3?source=copy_link"><img src="https://img.shields.io/badge/📝_Blog-Notion-black" alt="Blog"></a>
 </p>
 
 This repository contains the code and data for **MT-AgentRisk**, a benchmark for evaluating multi-turn safety in tool-using agents, and **ToolShield**, a training-free defense that leverages the agent's own capabilities to improve safety awareness.
