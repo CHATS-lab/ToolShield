@@ -1,1 +1,0 @@
-Go to the Team Projects page, find the person responsible for the most tasks (10 in total) and the person responsible for the fewest tasks (3 in total), then swap their assigned tasks.

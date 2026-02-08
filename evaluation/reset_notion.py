@@ -43,7 +43,7 @@ def find_ghost_page(client, parent_id, expected_title):
 
 def full_reset():
     s_key = os.environ.get("SOURCE_NOTION_KEY")
-    e_key = os.environ.get("EVAL_NOTION_KEY")
+    e_key = os.environ.get("NOTION_TOKEN")
     
     if not s_key or not e_key:
         logger.error("❌ Error: Missing API Keys.")

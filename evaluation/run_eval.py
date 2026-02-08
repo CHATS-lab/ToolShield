@@ -1,3 +1,30 @@
+#!/usr/bin/env python
+# coding=utf-8
+"""
+This evaluation framework is adapted from and builds upon:
+- OpenHands (https://github.com/OpenHands/OpenHands)
+- OpenAgentSafety (https://github.com/sani903/OpenAgentSafety)
+
+If you use this code, please cite:
+
+@misc{wang2025openhandsopenplatformai,
+      title={OpenHands: An Open Platform for AI Software Developers as Generalist Agents}, 
+      author={Xingyao Wang and Boxuan Li and Yufan Song and Frank F. Xu and Xiangru Tang and Mingchen Zhuge and Jiayi Pan and Yueqi Song and Bowen Li and Jaskirat Singh and Hoang H. Tran and Fuqiang Li and Ren Ma and Mingzhang Zheng and Bill Qian and Yanjun Shao and Niklas Muennighoff and Yizhe Zhang and Binyuan Hui and Junyang Lin and Robert Brennan and Hao Peng and Heng Ji and Graham Neubig},
+      year={2025},
+      eprint={2407.16741},
+      archivePrefix={arXiv},
+      primaryClass={cs.SE},
+      url={https://arxiv.org/abs/2407.16741}, 
+}
+
+@article{vijayvargiya2025openagentsafety,
+      title={OpenAgentSafety: A Comprehensive Framework for Evaluating Real-World AI Agent Safety},
+      author={Vijayvargiya, Sanidhya and Soni, Aditya Bharat and Zhou, Xuhui and Wang, Zora Zhiruo and Dziri, Nouha and Neubig, Graham and Sap, Maarten},
+      journal={arXiv preprint arXiv:2507.06134},
+      year={2025}
+}
+"""
+
 import argparse
 import asyncio
 import os
@@ -46,7 +73,6 @@ from openhands.core.config.condenser_config import BrowserOutputCondenserConfig
 import openai
 from browsing import pre_login
 
-# FIXME
 client = openai.OpenAI(
     # api_key=OPENAI_KEY
 )

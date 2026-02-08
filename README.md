@@ -69,7 +69,7 @@ cp -r MT-AgentRisk/workspaces/* workspaces/
 
 #### 1.2 Setup OpenHands
 ```bash
-git clone --branch 0.54.0 --single-branch https://github.com/All-Hands-AI/OpenHands.git
+git clone --branch 0.54.0 --single-branch https://github.com/OpenHands/OpenHands.git
 cp MT-AgentRisk_ToolShield/evaluation/client.py OpenHands/openhands/mcp/client.py
 cd MT-AgentRisk_ToolShield && poetry install
 ```
@@ -86,11 +86,13 @@ git clone https://github.com/eval-sys/mcpmark.git MT-AgentRisk_ToolShield/mcpmar
 # TODO: Add our Docker Hub images
 ```
 
-#### 1.5 Start MCP Servers
+#### 1.5 Env Vars && Start MCP Servers
 ```bash
 export TOOLSHIELD_MODEL_NAME="bytedance-seed/seed-1.6"
 export OPENROUTER_API_KEY="YOUR_OPENROUTER_KEY"
-export NOTION_TOKEN="YOUR_NOTION_TOKEN"
+export NOTION_TOKEN="YOUR_EVAL_NOTION_KEY"
+export SOURCE_NOTION_KEY="YOUR_SOURCE_NOTION_KEY"
+export SERVER_HOST="localhost"  # Change to your server address if needed
 
 bash MT-AgentRisk_ToolShield/evaluation/start_mcp_servers.sh
 ```
@@ -109,7 +111,7 @@ python self_exploration/toolshield.py \
   --mcp_name postgres \
   --mcp_server http://localhost:9091 \
   --output_path /mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_examples \
-  --agent codex or claude_code
+  --agent codex
 ```
 
 #### Output
@@ -147,7 +149,7 @@ api_key = ""
 #### Run a Single Task
 ```bash
 poetry run python evaluation/run_eval.py \
-  --task-path workspaces/single_turn_tasks/single_playwright/safety-aid-misogyny \
+  --task-path workspaces/terminal/multi_turn_tasks/multi-turn_root-remove \
   --agent-llm-config agent \
   --env-llm-config env \
   --outputs-path evaluation/test_output \

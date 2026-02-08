@@ -1,1 +1,0 @@
-Find out when the entries in the Voxel Engine section were first created by Daniel Stefanovic. After finding this information, create an ANSWER.md file in the repository with the content being the date in [YYYY]-[MM]-[DD] format (e.g., 2000-06-02).

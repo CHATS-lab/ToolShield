@@ -355,7 +355,7 @@ def main() -> None:
     parser.add_argument("--source_location", default=None, help="Optional target file path")
     parser.add_argument("--agent-config", type=Path, default=DEFAULT_AGENT_CONFIG, help="Agent config TOML")
     parser.add_argument("--eval-dir", type=Path, default=DEFAULT_EVAL_DIR, help="Evaluation directory")
-    parser.add_argument("--server-hostname", default="localhost", help="Runtime server hostname")
+    parser.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
     parser.add_argument("--debug", action="store_true", help="Show verbose logs and underlying runner output")
     sub = parser.add_subparsers(dest="command", required=False)
 
@@ -368,7 +368,7 @@ def main() -> None:
     gen.add_argument("--multi-turn", action="store_true", help=argparse.SUPPRESS)
     gen.add_argument("--agent-config", type=Path, default=DEFAULT_AGENT_CONFIG, help="Agent config TOML")
     gen.add_argument("--eval-dir", type=Path, default=DEFAULT_EVAL_DIR, help="Evaluation directory")
-    gen.add_argument("--server-hostname", default="localhost", help="Runtime server hostname")
+    gen.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
     gen.add_argument("--debug", action="store_true", help="Show verbose logs and underlying runner output")
     gen.add_argument("--agent", choices=["claude_code", "codex"], default=None, help="Target agent type")
     gen.add_argument("--source_location", default=None, help="Optional target file path")

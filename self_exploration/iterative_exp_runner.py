@@ -270,8 +270,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--server-hostname", 
-        default="64.176.198.19", 
-        help="Remote runtime hostname."
+        default=os.environ.get("SERVER_HOST", "localhost"), 
+        help="Remote runtime hostname (default: $REMOTE_HOST or localhost)."
     )
     parser.add_argument(
         "--remote-hostname", 
