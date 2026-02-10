@@ -153,7 +153,7 @@ for i in "${!BASE_DIRS[@]}"; do
             if [ $task_count -eq 500 ]; then
                 if needs_safearena_reset "$BASE_DIR"; then
                     echo "🔄 Resetting SafeArena for $BASE_DIR..."
-                    bash /mnt/data/MT-AgentRisk_ToolShield/evaluation/reset_safearena.sh
+                    bash "$(dirname "${BASH_SOURCE[0]}")/reset_safearena.sh"
                 fi
                 task_count=0
             fi

@@ -7,7 +7,8 @@
 
 set -e
 
-MCP_DIR="/mnt/data/MT-AgentRisk_ToolShield/evaluation/mcp_server"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MCP_DIR="${SCRIPT_DIR}/mcp_server"
 POSTGRES_CONTAINER="mcpmark-postgres"
 
 # Check screen is installed

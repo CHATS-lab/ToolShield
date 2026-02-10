@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ToolShield wrapper: generate test cases and distill experiences in sequence.
+ToolShield CLI — generate test cases and distill experiences in sequence.
 """
 
 from __future__ import annotations
@@ -8,105 +8,20 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
+import re
 import subprocess
-import threading
-import time
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import re
-import requests
-
-try:
-    from self_exploration import tree_generation
-except ImportError:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from self_exploration import tree_generation
+from toolshield import tree_generation
+from toolshield._paths import default_agent_config, default_eval_dir, repo_root
+from toolshield.inspector import inspect_mcp_tools
 
 
-DEFAULT_AGENT_CONFIG = Path("/mnt/data/MT-AgentRisk_ToolShield/evaluation/agent_config/config.toml")
-DEFAULT_EVAL_DIR = Path("/mnt/data/MT-AgentRisk_ToolShield/evaluation")
-
-
-class MCPInspector:
-    """Minimal MCP inspector to list tool names via SSE JSON-RPC."""
-
-    def __init__(self, base_url: str):
-        self.base_url = base_url.rstrip("/")
-        self.sse_url = f"{self.base_url}/sse"
-        self.message_url = f"{self.base_url}/message"
-        self.session_url = None
-        self._id = 0
-        self._responses: Dict[int, Dict] = {}
-        self._sse_thread = None
-        self._connected = threading.Event()
-
-    def _next_id(self) -> int:
-        self._id += 1
-        return self._id
-
-    def _listen_sse(self) -> None:
-        try:
-            resp = requests.get(self.sse_url, stream=True, timeout=(10, None))
-            event_type = None
-            for line in resp.iter_lines(decode_unicode=True):
-                if line is None:
-                    continue
-                line = line.strip()
-                if line.startswith("event:"):
-                    event_type = line[len("event:"):].strip()
-                elif line.startswith("data:"):
-                    data = line[len("data:"):].strip()
-                    if event_type == "endpoint":
-                        if data.startswith("http"):
-                            self.session_url = data
-                        else:
-                            self.session_url = f"{self.base_url}{data}"
-                        self._connected.set()
-                    elif event_type == "message":
-                        try:
-                            msg = json.loads(data)
-                            if "id" in msg:
-                                self._responses[msg["id"]] = msg
-                        except Exception:
-                            pass
-                    event_type = None
-        except Exception as exc:
-            print(f"[SSE] error: {exc}", file=sys.stderr)
-
-    def _send(self, method: str, params: Optional[dict] = None) -> dict:
-        rid = self._next_id()
-        payload = {"jsonrpc": "2.0", "id": rid, "method": method}
-        if params is not None:
-            payload["params"] = params
-
-        url = self.session_url or self.message_url
-        resp = requests.post(url, json=payload, timeout=15)
-        resp.raise_for_status()
-
-        for _ in range(100):
-            if rid in self._responses:
-                return self._responses.pop(rid)
-            time.sleep(0.1)
-        return {"error": "timeout waiting for response"}
-
-    def connect(self) -> None:
-        self._sse_thread = threading.Thread(target=self._listen_sse, daemon=True)
-        self._sse_thread.start()
-        if not self._connected.wait(timeout=10):
-            raise RuntimeError("Timed out waiting for SSE endpoint event")
-
-    def initialize(self) -> dict:
-        return self._send("initialize", {
-            "protocolVersion": "2024-11-05",
-            "capabilities": {},
-            "clientInfo": {"name": "toolshield-inspector", "version": "0.1.0"},
-        })
-
-    def list_tools(self) -> dict:
-        return self._send("tools/list", {})
-
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def _require_env() -> Tuple[str, str]:
     model = os.getenv("TOOLSHIELD_MODEL_NAME")
@@ -156,26 +71,6 @@ def _update_config_toml(path: Path, model: str, api_key: str) -> None:
     path.write_text("".join(lines))
 
 
-def _inspect_mcp_tools(base_url: str) -> Tuple[str, List[str]]:
-    inspector = MCPInspector(base_url)
-    inspector.connect()
-    init_resp = inspector.initialize()
-    tools_resp = inspector.list_tools()
-
-    description = ""
-    try:
-        server_info = init_resp.get("result", {}).get("serverInfo", {})
-        description = server_info.get("description") or server_info.get("name") or ""
-    except Exception:
-        description = ""
-
-    tools = tools_resp.get("result", {}).get("tools", [])
-    tool_names = [t.get("name") for t in tools if t.get("name")]
-    if not tool_names:
-        raise RuntimeError("No tools found from MCP server.")
-    return description, tool_names
-
-
 def _find_agent_file(agent: str, source_location: Optional[str] = None) -> Path:
     if source_location:
         return Path(source_location).expanduser()
@@ -215,9 +110,13 @@ def _format_experience_block(experiences: Dict[str, str], start_index: int) -> s
     idx = start_index
     for _, rule in sorted(experiences.items(), key=lambda kv: kv[0]):
         idx += 1
-        lines.append(f"**• exp.{idx}: {rule}**")
+        lines.append(f"**\u2022 exp.{idx}: {rule}**")
     return "\n".join(lines) + "\n"
 
+
+# ---------------------------------------------------------------------------
+# Sub-commands
+# ---------------------------------------------------------------------------
 
 def import_experiences(args: argparse.Namespace) -> None:
     exp_path = Path(args.exp_file).expanduser()
@@ -261,7 +160,7 @@ def _run_iterative_runner(
 ) -> None:
     env = os.environ.copy()
     env.update({
-        "TOOLSHIELD_REPO_ROOT": "/mnt/data/MT-AgentRisk_ToolShield",
+        "TOOLSHIELD_REPO_ROOT": str(repo_root()),
         "TOOLSHIELD_TASK_ROOT": str(task_root),
         "TOOLSHIELD_TASK_BASE_DIR": str(task_root),
         "TOOLSHIELD_OUTPUT_DIR": str(output_dir),
@@ -274,7 +173,7 @@ def _run_iterative_runner(
     output_dir.mkdir(parents=True, exist_ok=True)
     exp_file.parent.mkdir(parents=True, exist_ok=True)
 
-    runner = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/iterative_exp_runner.py")
+    runner = Path(__file__).resolve().parent / "iterative_exp_runner.py"
     cmd = [
         sys.executable,
         str(runner),
@@ -301,7 +200,7 @@ def generate(args: argparse.Namespace) -> None:
     model, api_key = _require_env()
     _update_config_toml(args.agent_config, model, api_key)
 
-    tool_description, tool_actions = _inspect_mcp_tools(args.mcp_server)
+    tool_description, tool_actions = inspect_mcp_tools(args.mcp_server)
 
     output_dir = Path(args.output_path)
     tree_generation.run_generation(
@@ -344,8 +243,15 @@ def _build_import_args_from_generate(args: argparse.Namespace, exp_file: Path) -
     )
 
 
+# ---------------------------------------------------------------------------
+# CLI entry point
+# ---------------------------------------------------------------------------
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="ToolShield wrapper CLI")
+    parser = argparse.ArgumentParser(
+        prog="toolshield",
+        description="ToolShield \u2014 training-free defense for tool-using AI agents",
+    )
     parser.add_argument("--mcp_name", help="MCP tool name (e.g., PostgreSQL)")
     parser.add_argument("--mcp_server", help="MCP server base URL (e.g., http://localhost:8000)")
     parser.add_argument("--context_guideline", default=None, help="Optional context guideline")
@@ -353,8 +259,8 @@ def main() -> None:
     parser.add_argument("--exp_file", default=None, help="Experience JSON path (optional)")
     parser.add_argument("--agent", choices=["claude_code", "codex"], default=None, help="Target agent type")
     parser.add_argument("--source_location", default=None, help="Optional target file path")
-    parser.add_argument("--agent-config", type=Path, default=DEFAULT_AGENT_CONFIG, help="Agent config TOML")
-    parser.add_argument("--eval-dir", type=Path, default=DEFAULT_EVAL_DIR, help="Evaluation directory")
+    parser.add_argument("--agent-config", type=Path, default=default_agent_config(), help="Agent config TOML")
+    parser.add_argument("--eval-dir", type=Path, default=default_eval_dir(), help="Evaluation directory")
     parser.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
     parser.add_argument("--debug", action="store_true", help="Show verbose logs and underlying runner output")
     sub = parser.add_subparsers(dest="command", required=False)
@@ -366,8 +272,8 @@ def main() -> None:
     gen.add_argument("--output_path", required=True, help="Output directory for generated tasks")
     gen.add_argument("--exp_file", default=None, help="Experience JSON path (optional)")
     gen.add_argument("--multi-turn", action="store_true", help=argparse.SUPPRESS)
-    gen.add_argument("--agent-config", type=Path, default=DEFAULT_AGENT_CONFIG, help="Agent config TOML")
-    gen.add_argument("--eval-dir", type=Path, default=DEFAULT_EVAL_DIR, help="Evaluation directory")
+    gen.add_argument("--agent-config", type=Path, default=default_agent_config(), help="Agent config TOML")
+    gen.add_argument("--eval-dir", type=Path, default=default_eval_dir(), help="Evaluation directory")
     gen.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
     gen.add_argument("--debug", action="store_true", help="Show verbose logs and underlying runner output")
     gen.add_argument("--agent", choices=["claude_code", "codex"], default=None, help="Target agent type")

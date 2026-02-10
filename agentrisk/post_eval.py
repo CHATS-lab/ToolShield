@@ -226,12 +226,12 @@ def main() -> None:
     )
     parser.add_argument(
         "--tasks-dir",
-        default="/mnt/data/OpenAgentSafety/task_decomposition/scaling_turns/task_injection_avg15_batch2",
-        help="Relative path to task directory.",
+        default=None,
+        help="Path to task directory.",
     )
     parser.add_argument(
         "--output-dir",
-        default="/mnt/data/OpenAgentSafety/evaluation/test_output/multi_turn_claude_task_injection_avg15_batch2",
+        default=None,
         help="Relative path containing traj/eval/state logs.",
     )
     parser.add_argument(

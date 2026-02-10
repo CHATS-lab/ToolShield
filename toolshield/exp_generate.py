@@ -5,7 +5,7 @@ from typing import Dict, Any, Tuple
 from pathlib import Path
 
 # Import prompts
-from prompts import (
+from toolshield.prompts import (
     TRAJECTORY_SUMMARY_PROMPT,
     TRAJECTORY_SUMMARY_USER_TEMPLATE,
     EXPERIENCE_LEARNING_SYSTEM_PROMPT,
@@ -28,11 +28,14 @@ except ImportError:
     HAS_OPENAI = False
     print("Error: OpenAI library not found. Install with: pip install openai")
 
-# Paths
-TREE_PATH = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_examples/safety_tree.json")
-TASK_BASE_DIR = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_examples")
-STATE_BASE_DIR = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_output")
-EXPERIENCE_FILE = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/experience_list.json")
+# Paths — configurable via environment variables, with sensible defaults
+from toolshield._paths import repo_root as _repo_root
+
+_root = _repo_root()
+TREE_PATH = Path(os.getenv("TOOLSHIELD_TREE_PATH", str(_root / "output" / "safety_tree.json")))
+TASK_BASE_DIR = Path(os.getenv("TOOLSHIELD_TASK_BASE_DIR", str(_root / "output")))
+STATE_BASE_DIR = Path(os.getenv("TOOLSHIELD_STATE_BASE_DIR", str(_root / "output" / "exp_output")))
+EXPERIENCE_FILE = Path(os.getenv("TOOLSHIELD_EXPERIENCE_FILE", str(_root / "output" / "experience_list.json")))
 
 # Model configuration
 MODEL = os.getenv("TOOLSHIELD_MODEL_NAME", "deepseek/deepseek-v3.2")

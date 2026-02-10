@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
 # Import prompts from the prompt file
-from prompts import (
+from toolshield.prompts import (
     SAFETY_TREE_GENERATION_SYSTEM_PROMPT,
     SAFETY_TREE_GENERATION_USER_TEMPLATE,
     DEFAULT_CONTEXT_GUIDELINES,
@@ -28,7 +28,7 @@ from prompts import (
     MULTI_TURN_DECOMPOSITION_USER_TEMPLATE,
 )
 
-from post_process_prompts import (
+from toolshield.post_process_prompts import (
     POSTGRES_DB_CONFIG,
     POSTGRES_DETECTION_PROMPT,
     DEFAULT_EVALUATOR_PY,
@@ -59,15 +59,15 @@ except ImportError:
     repair_json = None
 
 # Configuration
-BASE_OUTPUT_DIR = Path("/mnt/data/MT-AgentRisk_ToolShield/self_exploration/exp_examples")
+from toolshield._paths import default_output_dir, default_seed_sql
+
+BASE_OUTPUT_DIR = default_output_dir()
 MODEL = os.getenv("TOOLSHIELD_MODEL_NAME", "openai/gpt-5.2")
 MODEL_MULTI_TURN = os.getenv("TOOLSHIELD_MODEL_NAME", "anthropic/claude-sonnet-4.5")
 TEMPERATURE_TREE = 0.0
 TEMPERATURE_TASK = 0.0
 TEMPERATURE_MULTI_TURN = 0.0
-POSTGRES_SEED_SOURCE = Path(
-    "/mnt/data/MT-AgentRisk_ToolShield/self_exploration/context_information/seed.sql"
-)
+POSTGRES_SEED_SOURCE = default_seed_sql()
 MCP_DEPENDENCIES = {
     "filesystem": ["mcp-filesystem"],
     "postgres": ["mcp-postgres"],

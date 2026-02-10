@@ -25,18 +25,20 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from tqdm import tqdm
 
-from exp_generate import (
+from toolshield.exp_generate import (
     learn_from_task_state,
     apply_experience_result,
     load_experience_list,
     save_experience_list,
 )
 
-REPO_ROOT = Path("/mnt/data/MT-AgentRisk_ToolShield")
-DEFAULT_TASK_ROOT = REPO_ROOT / "self_exploration" / "exp_examples"
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "self_exploration" / "exp_output"
-DEFAULT_EXPERIENCE_FILE = REPO_ROOT / "self_exploration" / "experience_list.json"
-DEFAULT_EVAL_DIR = REPO_ROOT / "evaluation"
+from toolshield._paths import repo_root as _repo_root, default_eval_dir as _default_eval_dir
+
+REPO_ROOT = _repo_root()
+DEFAULT_TASK_ROOT = REPO_ROOT / "output"
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "output" / "exp_output"
+DEFAULT_EXPERIENCE_FILE = REPO_ROOT / "output" / "experience_list.json"
+DEFAULT_EVAL_DIR = _default_eval_dir()
 
 
 

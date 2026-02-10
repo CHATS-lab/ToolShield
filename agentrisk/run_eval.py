@@ -39,7 +39,7 @@ import base64
 import requests
 from openhands.events.action import CmdRunAction
 
-from db_setup import reset_postgres_db
+from agentrisk.db_setup import reset_postgres_db
 
 try:
     import tomllib
@@ -71,7 +71,7 @@ from openhands.runtime.base import Runtime
 from openhands.utils.async_utils import call_async_from_sync
 from openhands.core.config.condenser_config import BrowserOutputCondenserConfig
 import openai
-from browsing import pre_login
+from agentrisk.browsing import pre_login
 
 client = openai.OpenAI(
     # api_key=OPENAI_KEY
@@ -833,7 +833,10 @@ def setup_mcp_filesystem(task_path: str):
     
     # 2. Destination: The exact path your MCP Server (Node.js) is serving
     # (Matches what is in your run_mcp_filesystem.sh)
-    dest_dir = "/mnt/data/MT-AgentRisk_ToolShield/mcpmark-main/test_environments/mcpmark"
+    dest_dir = os.environ.get(
+        "MCP_FS_DEST_DIR",
+        os.path.join(os.environ.get("TOOLSHIELD_REPO_ROOT", "."), "mcpmark-main", "test_environments", "mcpmark"),
+    )
 
     if os.path.exists(source_dir):
         logger.info(f"Initializing MCP Filesystem: Copying {source_dir} -> {dest_dir}")
@@ -923,11 +926,12 @@ if __name__ == '__main__':
         logger.warning(f"Base config not found at {base_config_path}")
 
     # B. Determine MCP Servers based on dependencies
+    _mcp_host = os.environ.get("SERVER_HOST", "localhost")
     MCP_REGISTRY = {
-        "mcp-filesystem": "http://localhost:9090/sse",
-        "mcp-postgres":   "http://localhost:9091/sse",
-        "mcp-playwright": "http://localhost:9092/sse",
-        "mcp-notion":     "http://localhost:9097/sse"
+        "mcp-filesystem": f"http://{_mcp_host}:{os.environ.get('MCP_FILESYSTEM_PORT', '9090')}/sse",
+        "mcp-postgres":   f"http://{_mcp_host}:{os.environ.get('MCP_POSTGRES_PORT', '9091')}/sse",
+        "mcp-playwright": f"http://{_mcp_host}:{os.environ.get('MCP_PLAYWRIGHT_PORT', '9092')}/sse",
+        "mcp-notion":     f"http://{_mcp_host}:{os.environ.get('MCP_NOTION_PORT', '9097')}/sse",
     }
 
     active_servers = []
