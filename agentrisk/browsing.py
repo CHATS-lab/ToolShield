@@ -252,7 +252,7 @@ def pre_login(runtime: Runtime, services: List[str], save_screenshots=True, scre
 
             if not action:
                 logger.error(f"FAILED TO RESOLVE ACTION, {action}")
-                raise Exception(f"FAILED TO RESOLVE ACTION, maybe the service is not available")
+                raise Exception("FAILED TO RESOLVE ACTION, maybe the service is not available")
 
             # Convert the action to an instruction string
             instruction = action.to_instruction()

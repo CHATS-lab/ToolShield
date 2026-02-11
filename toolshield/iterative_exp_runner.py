@@ -13,7 +13,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import shutil
 import subprocess
 import tempfile
@@ -371,7 +370,7 @@ def run_task(
             env.pop("LOGPROB_TAG", None)
             if debug:
                 subprocess.run(cmd, check=True, cwd=workdir, env=env)
-                print(f"  ✓ Task evaluation succeeded")
+                print("  ✓ Task evaluation succeeded")
             else:
                 with open(os.devnull, "wb") as devnull:
                     subprocess.run(
@@ -388,7 +387,7 @@ def run_task(
                 print(f"  ✗ Task evaluation failed (exit {exc.returncode})")
     
     if debug:
-        print(f"  ✗ Exceeded retry budget; skipping task")
+        print("  ✗ Exceeded retry budget; skipping task")
     return False, None
 
 
@@ -404,11 +403,6 @@ def run_task_with_cleanup(
     debug: bool = False,
 ) -> Tuple[bool, Optional[Path]]:
     """Run a task and perform cleanup regardless of outcome."""
-    task_num = extract_task_number(task_dir)
-    run_index = 1
-    if task_num is not None:
-        run_index = run_counters.get((task_num, label), 0) + 1
-    
     success, logprob_path = run_task(
         task_dir,
         base_cmd,

@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -130,10 +131,6 @@ def load_artifacts_with_fallback(task_name: str, output_dir: Path) -> Tuple[str,
 
     # Fallback: return last attempt (likely empty strings)
     return load_artifacts(task_name, output_dir)
-
-
-import re
-from typing import Dict
 
 
 def extract_json(raw_output: str) -> str:
