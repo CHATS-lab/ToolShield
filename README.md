@@ -38,7 +38,25 @@ pip install toolshield
 
 ### Use Pre-generated Experiences
 
-We ship safety experiences for 6 models across 5 tools, with plug-and-play support for **5 coding agents**. Inject them in one command:
+We ship safety experiences for 6 models across 5 tools, with plug-and-play support for **5 coding agents**:
+
+<a href="#use-pre-generated-experiences">
+  <img src="https://img.shields.io/badge/Claude_Code-D97757?style=flat-square&logo=anthropic&logoColor=white" alt="Claude Code" />
+</a>
+<a href="docs/agents/codex.md">
+  <img src="https://img.shields.io/badge/Codex-000000?style=flat-square&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABm0lEQVR42rVSK6jCYBj9f7FoG75A0KRNWbDKQAQxGuRHYWCRgWYRLBo0DCwqBrUJLojY7C74aGPJMNGyMIQN8QEKv7pbLj7GhcsN97SP7xy+7xwO1HUd/AUm8EeYDfP9fud5fr/fRyIRm832ywWMMU3T6/UaABCNRlOpVCaTEUXxQ6G/odVqTSaTxWKBEOr3+8fjUVXVZDK5Wq2enJeAYRiSJGVZTiQSmqaVy+VYLMYwzGw2q1QqT9q3h+l06vP5XC4XhFBV1VwudzqdstlsIBCoVqt2u91oervdhkIhnufP57PX6+U47vF4hMNht9vNsmy9Xpdl2ePxvExTFMVxHE3TtVpNURSMMcaYIIhSqTQcDuPx+HK5/Ljg9/vNZnOxWGRZdrPZUBTldDoPh4PFYgEACIKAEDLGShBEoVDodrudTiedTrfbbavVquv6aDSCEAaDQWOskiQhhDRNu16vzWYTISRJ0mAwGI/H79HD9y6Jotjr9W63myAI+Xx+t9spitJoNEym1yPwx/JdLpf5fO5wOEiSNKzgv7f1C7WV+mn4U8OsAAAAAElFTkSuQmCC&logoColor=white" alt="Codex" />
+</a>
+<a href="#use-pre-generated-experiences">
+  <img src="https://img.shields.io/badge/Cursor-00A3E0?style=flat-square&logo=cursor&logoColor=white" alt="Cursor" />
+</a>
+<a href="docs/agents/openhands.md">
+  <img src="https://img.shields.io/badge/%F0%9F%99%8C_OpenHands-E5725E?style=flat-square" alt="OpenHands" />
+</a>
+<a href="docs/agents/openclaw.md">
+  <img src="https://img.shields.io/badge/%F0%9F%A6%9E_OpenClaw-FF6B6B?style=flat-square" alt="OpenClaw" />
+</a>
+
+Inject them in one command:
 
 ```bash
 # For Claude Code (filesystem example)
