@@ -117,10 +117,10 @@ SERVER_HOST="${SERVER_HOST:-localhost}"
 EXPERIENCE_PATHS=()
 
 BASE_DIRS=(
-    "MT-AgentRisk/workspaces/Subset_100/sub_filesystem/multi_turn_tasks"
-    "MT-AgentRisk/workspaces/Subset_100/sub_terminal/multi_turn_tasks"
-    "MT-AgentRisk/workspaces/Subset_100/sub_postgres/multi_turn_tasks"
-    "MT-AgentRisk/workspaces/Subset_100/sub_playwrightm/multi_turn_tasks"
+    "workspaces/Subset_100/sub_filesystem/multi_turn_tasks"
+    "workspaces/Subset_100/sub_terminal/multi_turn_tasks"
+    "workspaces/Subset_100/sub_postgres/multi_turn_tasks"
+    "workspaces/Subset_100/sub_playwrightm/multi_turn_tasks"
 )
 OUTPUT_DIRS=(
     "MT-AgentRisk_ToolShield/evaluation/test_output_sub_filesystem"
