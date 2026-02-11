@@ -8,15 +8,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import re
+import sqlite3
 import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from toolshield import tree_generation
 from toolshield._paths import default_agent_config, default_eval_dir, repo_root
-from toolshield.inspector import inspect_mcp_tools
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +71,127 @@ def _update_config_toml(path: Path, model: str, api_key: str) -> None:
     path.write_text("".join(lines))
 
 
+def _resolve_openclaw_workspace() -> Path:
+    """Locate the OpenClaw workspace directory, respecting env overrides and legacy paths."""
+    home = Path.home()
+
+    # Explicit state-dir override
+    state_override = os.environ.get("OPENCLAW_STATE_DIR", "").strip()
+    if state_override:
+        base = Path(state_override).expanduser()
+    else:
+        # Check new dir first, then legacy names
+        candidates = [
+            home / ".openclaw",
+            home / ".clawdbot",
+            home / ".moltbot",
+            home / ".moldbot",
+        ]
+        base = next((c for c in candidates if c.is_dir()), candidates[0])
+
+    # Profile-aware workspace sub-directory
+    profile = os.environ.get("OPENCLAW_PROFILE", "").strip()
+    if profile and profile.lower() != "default":
+        return base / f"workspace-{profile}"
+    return base / "workspace"
+
+
+def _resolve_cursor_db() -> Path:
+    """Locate the Cursor state database across platforms."""
+    system = platform.system()
+    if system == "Darwin":
+        db = Path.home() / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "state.vscdb"
+    elif system == "Windows":
+        appdata = os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming")
+        db = Path(appdata) / "Cursor" / "User" / "globalStorage" / "state.vscdb"
+    else:  # Linux
+        db = Path.home() / ".config" / "Cursor" / "User" / "globalStorage" / "state.vscdb"
+    return db
+
+
+_CURSOR_RULES_KEY = "aicontext.personalContext"
+
+
+def _cursor_read_rules(db_path: Path) -> str:
+    """Read the current user rules from Cursor's SQLite database."""
+    if not db_path.exists():
+        return ""
+    conn = sqlite3.connect(str(db_path))
+    try:
+        row = conn.execute(
+            "SELECT value FROM ItemTable WHERE key = ?", (_CURSOR_RULES_KEY,)
+        ).fetchone()
+        if not row or row[0] is None:
+            return ""
+        val = row[0]
+        return val.decode("utf-8", errors="replace") if isinstance(val, bytes) else str(val)
+    finally:
+        conn.close()
+
+
+def _cursor_write_rules(db_path: Path, content: str) -> None:
+    """Write user rules back to Cursor's SQLite database."""
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE, value BLOB)"
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+            (_CURSOR_RULES_KEY, content),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+_OPENHANDS_MICROAGENT_FILE = "toolshield.md"
+
+
+def _resolve_openhands_microagent() -> Path:
+    """Path to the ToolShield microagent inside the user-level OpenHands dir."""
+    return Path.home() / ".openhands" / "microagents" / _OPENHANDS_MICROAGENT_FILE
+
+
+def _build_openhands_microagent(exp_path: Path, experiences: Dict[str, str]) -> str:
+    """Build a complete OpenHands microagent markdown file from experiences."""
+    tool_name = exp_path.stem.split("_")[-1]
+    block = _format_experience_block(experiences, 0)
+    return (
+        "---\n"
+        "name: toolshield\n"
+        "type: repo\n"
+        "version: 1.0.0\n"
+        "agent: CodeActAgent\n"
+        "---\n\n"
+        f"{EXPERIENCE_HEADER}\n\n"
+        "The following guidelines have been identified from analyzing similar tasks. "
+        "Please carefully consider these rules before taking any actions:\n\n"
+        f"Guidelines for the {tool_name}: \n\n"
+        f"{block}"
+    )
+
+
+def _detect_agent_installed(agent: str) -> bool:
+    """Check whether the target agent appears to be installed."""
+    home = Path.home()
+    if agent == "claude_code":
+        return (home / ".claude").is_dir()
+    if agent == "codex":
+        return (home / ".codex").is_dir()
+    if agent == "openclaw":
+        for name in [".openclaw", ".clawdbot", ".moltbot", ".moldbot"]:
+            if (home / name).is_dir():
+                return True
+        return False
+    if agent == "cursor":
+        return _resolve_cursor_db().exists()
+    if agent == "openhands":
+        return (home / ".openhands").is_dir()
+    return False
+
+
 def _find_agent_file(agent: str, source_location: Optional[str] = None) -> Path:
     if source_location:
         return Path(source_location).expanduser()
@@ -78,6 +199,8 @@ def _find_agent_file(agent: str, source_location: Optional[str] = None) -> Path:
     home = Path.home()
     if agent == "claude_code":
         preferred = home / ".claude" / "CLAUDE.md"
+    elif agent == "openclaw":
+        preferred = _resolve_openclaw_workspace() / "AGENTS.md"
     else:
         preferred = home / ".codex" / "AGENTS.md"
 
@@ -118,17 +241,10 @@ def _format_experience_block(experiences: Dict[str, str], start_index: int) -> s
 # Sub-commands
 # ---------------------------------------------------------------------------
 
-def import_experiences(args: argparse.Namespace) -> None:
-    exp_path = Path(args.exp_file).expanduser()
-    experiences = _load_experiences(exp_path)
-    if not experiences:
-        print("No experiences found in the JSON file. Nothing to import.")
-        return
-
-    target = _find_agent_file(args.agent, args.source_location)
-    content = target.read_text() if target.exists() else ""
-
-    header = "## Guidelines from Previous Experience"
+def _build_guidelines_text(
+    exp_path: Path, experiences: Dict[str, str], existing_content: str,
+) -> str:
+    """Build the text to append given existing content and new experiences."""
     intro = (
         "The following guidelines have been identified from analyzing similar tasks. "
         "Please carefully consider these rules before taking any actions:\n\n"
@@ -136,16 +252,108 @@ def import_experiences(args: argparse.Namespace) -> None:
     tool_name = exp_path.stem.split("_")[-1]
     tool_line = f"Guidelines for the {tool_name}: \n\n"
 
-    max_idx = _get_max_exp_index(content)
+    max_idx = _get_max_exp_index(existing_content)
     block = _format_experience_block(experiences, max_idx)
 
-    if header in content:
-        append_text = "\n" + tool_line + block
-    else:
-        append_text = "\n" + header + "\n\n" + intro + tool_line + block
+    if EXPERIENCE_HEADER in existing_content:
+        return "\n" + tool_line + block
+    return "\n" + EXPERIENCE_HEADER + "\n\n" + intro + tool_line + block
 
+
+def import_experiences(args: argparse.Namespace) -> None:
+    exp_path = Path(args.exp_file).expanduser()
+    experiences = _load_experiences(exp_path)
+    if not experiences:
+        print("No experiences found in the JSON file. Nothing to import.")
+        return
+
+    if not args.source_location and not _detect_agent_installed(args.agent):
+        print(
+            f"Warning: {args.agent} does not appear to be installed "
+            f"(no config directory found).\n"
+            f"If it is installed in a non-default location, "
+            f"pass the path with --source_location <path>."
+        )
+        sys.exit(1)
+
+    if args.agent == "openhands" and not args.source_location:
+        target = _resolve_openhands_microagent()
+        if target.exists():
+            # Append new tool section to existing microagent
+            content = target.read_text()
+            tool_name = exp_path.stem.split("_")[-1]
+            max_idx = _get_max_exp_index(content)
+            block = _format_experience_block(experiences, max_idx)
+            target.write_text(content + f"\nGuidelines for the {tool_name}: \n\n{block}")
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(_build_openhands_microagent(exp_path, experiences))
+        print(f"Injected {len(experiences)} guidelines into OpenHands microagent: {target}")
+        return
+
+    if args.agent == "cursor" and not args.source_location:
+        db = _resolve_cursor_db()
+        content = _cursor_read_rules(db)
+        append_text = _build_guidelines_text(exp_path, experiences, content)
+        _cursor_write_rules(db, content + append_text)
+        print(f"Injected {len(experiences)} guidelines into Cursor user rules: {db}")
+        return
+
+    target = _find_agent_file(args.agent, args.source_location)
+    content = target.read_text() if target.exists() else ""
+    append_text = _build_guidelines_text(exp_path, experiences, content)
     target.write_text(content + append_text)
     print(f"Injected {len(experiences)} guidelines into: {target}")
+
+
+EXPERIENCE_HEADER = "## Guidelines from Previous Experience"
+
+
+def unload_experiences(args: argparse.Namespace) -> None:
+    """Remove all ToolShield-injected guidelines from the agent file."""
+    if not args.source_location and not _detect_agent_installed(args.agent):
+        print(
+            f"Warning: {args.agent} does not appear to be installed "
+            f"(no config directory found).\n"
+            f"If it is installed in a non-default location, "
+            f"pass the path with --source_location <path>."
+        )
+        sys.exit(1)
+
+    if args.agent == "openhands" and not args.source_location:
+        target = _resolve_openhands_microagent()
+        if not target.exists():
+            print("No ToolShield microagent found for OpenHands.")
+            return
+        target.unlink()
+        print(f"Removed ToolShield microagent: {target}")
+        return
+
+    if args.agent == "cursor" and not args.source_location:
+        db = _resolve_cursor_db()
+        content = _cursor_read_rules(db)
+        if not content or EXPERIENCE_HEADER not in content:
+            print("No ToolShield guidelines found in Cursor user rules.")
+            return
+        cleaned = content[:content.index(EXPERIENCE_HEADER)].rstrip() + "\n"
+        _cursor_write_rules(db, cleaned)
+        print(f"Removed ToolShield guidelines from Cursor user rules: {db}")
+        return
+
+    target = _find_agent_file(args.agent, args.source_location)
+    if not target.exists():
+        print(f"Agent file not found: {target}")
+        return
+
+    content = target.read_text()
+    if EXPERIENCE_HEADER not in content:
+        print(f"No ToolShield guidelines found in: {target}")
+        return
+
+    # Remove everything from the header onward
+    cleaned = content[:content.index(EXPERIENCE_HEADER)].rstrip() + "\n"
+    target.write_text(cleaned)
+    print(f"Removed ToolShield guidelines from: {target}")
 
 
 def _run_iterative_runner(
@@ -195,6 +403,9 @@ def _run_iterative_runner(
 
 
 def generate(args: argparse.Namespace) -> None:
+    from toolshield import tree_generation
+    from toolshield.inspector import inspect_mcp_tools
+
     if getattr(args, "multi_turn", False):
         print("Note: --multi-turn is always enabled; flag is ignored.")
     model, api_key = _require_env()
@@ -257,7 +468,7 @@ def main() -> None:
     parser.add_argument("--context_guideline", default=None, help="Optional context guideline")
     parser.add_argument("--output_path", help="Output directory for generated tasks")
     parser.add_argument("--exp_file", default=None, help="Experience JSON path (optional)")
-    parser.add_argument("--agent", choices=["claude_code", "codex"], default=None, help="Target agent type")
+    parser.add_argument("--agent", choices=["claude_code", "codex", "openclaw", "cursor", "openhands"], default=None, help="Target agent type")
     parser.add_argument("--source_location", default=None, help="Optional target file path")
     parser.add_argument("--agent-config", type=Path, default=default_agent_config(), help="Agent config TOML")
     parser.add_argument("--eval-dir", type=Path, default=default_eval_dir(), help="Evaluation directory")
@@ -276,7 +487,7 @@ def main() -> None:
     gen.add_argument("--eval-dir", type=Path, default=default_eval_dir(), help="Evaluation directory")
     gen.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
     gen.add_argument("--debug", action="store_true", help="Show verbose logs and underlying runner output")
-    gen.add_argument("--agent", choices=["claude_code", "codex"], default=None, help="Target agent type")
+    gen.add_argument("--agent", choices=["claude_code", "codex", "openclaw", "cursor", "openhands"], default=None, help="Target agent type")
     gen.add_argument("--source_location", default=None, help="Optional target file path")
     gen.set_defaults(func=generate)
 
@@ -284,12 +495,22 @@ def main() -> None:
     imp.add_argument("--exp-file", required=True, help="Experience JSON to inject")
     imp.add_argument(
         "--agent",
-        choices=["claude_code", "codex"],
+        choices=["claude_code", "codex", "openclaw", "cursor", "openhands"],
         default="claude_code",
         help="Target agent type",
     )
     imp.add_argument("--source_location", default=None, help="Optional target file path")
     imp.set_defaults(func=import_experiences)
+
+    unl = sub.add_parser("unload", help="Remove injected experience guidelines from agent instructions")
+    unl.add_argument(
+        "--agent",
+        choices=["claude_code", "codex", "openclaw", "cursor", "openhands"],
+        default="claude_code",
+        help="Target agent type",
+    )
+    unl.add_argument("--source_location", default=None, help="Optional target file path")
+    unl.set_defaults(func=unload_experiences)
 
     args = parser.parse_args()
     if args.command is None:
