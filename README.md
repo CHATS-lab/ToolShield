@@ -41,30 +41,39 @@ pip install toolshield
 We ship safety experiences for 6 models across 5 tools, with plug-and-play support for **5 coding agents**. Inject them in one command:
 
 ```bash
-# For Claude Code
+# For Claude Code (filesystem example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json \
   --agent claude_code
 
-# For Codex
+# For Codex (postgres example)
 toolshield import \
   --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
   --agent codex
 
-# For OpenClaw
+# For OpenClaw (terminal example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json \
   --agent openclaw
 
-# For Cursor (writes to global user rules via SQLite)
+# For Cursor (playwright example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_playwright.json \
   --agent cursor
 
-# For OpenHands (creates a microagent)
+# For OpenHands (notion example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_notion.json \
   --agent openhands
+```
+
+You can import multiple experience files to protect against different tool categories:
+
+```bash
+# Load filesystem + terminal + postgres experiences into Claude Code
+toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json --agent claude_code
+toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json --agent claude_code
+toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json --agent claude_code
 ```
 
 This appends safety guidelines to your agent's context file (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.openclaw/workspace/AGENTS.md`, Cursor's global user rules, or `~/.openhands/microagents/toolshield.md`). To remove them:
@@ -75,14 +84,16 @@ toolshield unload --agent claude_code
 
 Available experiences in `experiences/`:
 
-| Model | 📁 Filesystem | 🐘 PostgreSQL | 💻 Terminal | 🎭 Playwright | 📝 Notion |
+| Model | ![Filesystem](https://img.shields.io/badge/-Filesystem-black?style=flat-square&logo=files&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-black?style=flat-square&logo=postgresql&logoColor=white) | ![Terminal](https://img.shields.io/badge/-Terminal-black?style=flat-square&logo=gnometerminal&logoColor=white) | ![Chrome](https://img.shields.io/badge/-Chrome-black?style=flat-square&logo=googlechrome&logoColor=white) | ![Notion](https://img.shields.io/badge/-Notion-black?style=flat-square&logo=notion&logoColor=white) |
 |-------|:---:|:---:|:---:|:---:|:---:|
-| `claude-sonnet-4.5` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `claude-sonnet-4.5` | ✅  | ✅ | ✅ | ✅ | ✅ |
 | `gpt-5.2` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `deepseek-v3.2` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `gemini-3-flash-preview` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `qwen3-coder-plus` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `seed-1.6` | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+> **Note:** The filesystem experience file for `claude-sonnet-4.5` is named `_fs.json`; all other models use `_filesystem.json`.
 
 > More plug-and-play experiences for additional tools coming soon (including [Toolathlon](https://github.com/toolathlon) support)! Have a tool you'd like covered? [Open an issue](https://github.com/CHATS-Lab/ToolShield/issues).
 

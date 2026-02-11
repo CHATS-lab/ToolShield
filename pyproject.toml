@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling<1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -9,7 +9,10 @@ description = "Training-free defense for multi-turn safety risks in tool-using A
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-authors = [{ name = "CHATS Lab" }]
+authors = [
+    { name = "Xu Li", email = "li.xu2@northeastern.edu" },
+    { name = "Simon Yu", email = "simon011130@gmail.com" },
+]
 keywords = ["llm", "safety", "mcp", "agents", "toolshield"]
 classifiers = [
     "Development Status :: 3 - Alpha",
