@@ -1,8 +1,6 @@
 import sys
 import os
 import logging
-import time
-from typing import Optional
 
 # --- PATH SETUP ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +59,7 @@ def full_reset():
             logger.error("❌ Critical Error: Could not find Source or Eval Hub pages.")
             return False
 
-        logger.info(f"🔄 STARTING FULL RESET")
+        logger.info("🔄 STARTING FULL RESET")
 
         # 1. WIPE EVAL HUB
         logger.info("🗑️  Wiping Eval Hub...")
@@ -103,8 +101,8 @@ def full_reset():
                     )
                     new_page_id = dup_id
 
-                except Exception as e:
-                    logger.warning(f"     ⚠️ Standard verification failed. Checking for 'Ghost Page'...")
+                except Exception:
+                    logger.warning("     ⚠️ Standard verification failed. Checking for 'Ghost Page'...")
                     
                     # RECOVERY: Search for the page manually with EXACT casing
                     expected_ghost_title = f"{title} (1)" 
@@ -124,7 +122,7 @@ def full_reset():
                             page_id=new_page_id,
                             parent={"page_id": eval_hub_id}
                         )
-                        print(f"     📦 Moved to Eval Hub")
+                        print("     📦 Moved to Eval Hub")
                         
                         # Rename (remove the " (1)")
                         # Notion API update properties
@@ -141,7 +139,7 @@ def full_reset():
                             }
                         )
                         print(f"     ✏️  Renamed to '{title}'")
-                        print(f"     ✅ Success!")
+                        print("     ✅ Success!")
                         cloned_count += 1
                         
                     except Exception as move_err:

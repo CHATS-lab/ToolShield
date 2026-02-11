@@ -3,7 +3,6 @@ import json
 import os
 from typing import List, Dict, Any
 from pathlib import Path
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 
@@ -992,7 +991,7 @@ def run_generation(
         print("[1/4] Tree Generation")
     
     # Phase 1: Generate safety analysis tree
-    log(f"\n📊 Phase 1: Generating Safety Analysis Tree...")
+    log("\n📊 Phase 1: Generating Safety Analysis Tree...")
     log(f"   Analyzing {mcp_name} functions")
     
     tree_data = generate_safety_tree(

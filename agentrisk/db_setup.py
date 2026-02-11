@@ -1,6 +1,5 @@
 import subprocess
 import os
-from pathlib import Path
 
 # CONFIGURATION
 CONTAINER_NAME = "mcpmark-postgres"
