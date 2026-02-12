@@ -27,7 +27,7 @@
 **ToolShield** is a training-free, tool-agnostic defense for AI agents that use MCP tools. It works by letting the agent explore tool functionality in a sandbox, learning from its own executions, and distilling safety guidelines before deployment. Reduces attack success rate by **30%** on average — with zero fine-tuning.
 
 <p align="center">
-  <img src="overview.jpg" alt="Overview" width="75%">
+  <img src="assets/overview.png" alt="Overview" width="75%">
 </p>
 
 ## Quickstart
