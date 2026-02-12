@@ -148,7 +148,7 @@ def get_next_exp_key(experiences: Dict[str, str]) -> str:
             try:
                 num = int(key.split(".")[1])
                 numbers.append(num)
-            except:
+            except (ValueError, IndexError):
                 continue
     
     if not numbers:
@@ -216,7 +216,7 @@ def summarize_trajectory(task_num: int) -> str:
             if f.is_file():
                 try:
                     setup_files[str(f.relative_to(setup_dir))] = f.read_text()
-                except:
+                except Exception:
                     setup_files[str(f.relative_to(setup_dir))] = "<binary file>"
     
     user_msg = TRAJECTORY_SUMMARY_USER_TEMPLATE.format(
@@ -316,7 +316,7 @@ def learn_from_task_state(task_num: int) -> Dict[str, Any]:
     """
     _, _, file_prefix = get_task_paths(task_num)
     
-    print(f"  Phase 1: Summarizing trajectory...")
+    print("  Phase 1: Summarizing trajectory...")
     trajectory_summary = summarize_trajectory(task_num)
     
     if not trajectory_summary:
@@ -328,7 +328,7 @@ def learn_from_task_state(task_num: int) -> Dict[str, Any]:
     summary_file.write_text(trajectory_summary)
     print(f"  ✓ Summary saved to {summary_file.name}")
     
-    print(f"  Phase 2: Extracting safety experience...")
+    print("  Phase 2: Extracting safety experience...")
     result = learn_from_trajectory_summary(task_num, trajectory_summary)
     
     return result
@@ -393,14 +393,13 @@ def update_experience_list(result: Dict[str, Any]) -> bool:
         
         reasoning = result.get("reasoning", "No reasoning provided")
         action = result.get("action")
-        exp_key = result.get("exp_key")
         exp_value = result.get("exp_value")
         
         experiences = load_experience_list()
         next_state, metadata = apply_experience_result(experiences, result)
         
         if not metadata["changed"]:
-            print(f"  ○ NO CHANGE - Experience already covered or not actionable")
+            print("  ○ NO CHANGE - Experience already covered or not actionable")
             print(f"    Reasoning: {reasoning}")
             return True
         
@@ -546,9 +545,9 @@ def process_all_tasks():
                 task_num = 100 + base_num
             else:
                 task_num = int(task_dir.name.split(".")[1])
-        except:
+        except (ValueError, IndexError):
             continue
-        
+
         print(f"\n[Task {task_num}] ({task_dir.name})")
         
         # Learn from this task
@@ -578,7 +577,7 @@ def process_all_tasks():
     print("\n" + "="*70)
     print("✓ Processing Complete!")
     print("="*70)
-    print(f"\nResults Summary:")
+    print("\nResults Summary:")
     print(f"  Added: {results_summary['ADD']}")
     print(f"  Updated: {results_summary['UPDATE']}")
     print(f"  Deleted: {results_summary['DELETE']}")
@@ -626,12 +625,12 @@ def process_single_task(task_num: int):
     
     # Display semantic advantage if present
     if "semantic_advantage" in result:
-        print(f"\n  📝 Semantic Advantage:")
+        print("\n  📝 Semantic Advantage:")
         print(f"     {result['semantic_advantage']}")
     
     # Display coverage analysis if present
     if "coverage_analysis" in result:
-        print(f"\n  📊 Coverage Analysis:")
+        print("\n  📊 Coverage Analysis:")
         coverage = result['coverage_analysis']
         if coverage.get('related_keys'):
             print(f"     Related Keys: {', '.join(coverage['related_keys'])}")

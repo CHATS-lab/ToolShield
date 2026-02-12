@@ -27,19 +27,35 @@ If you use this code, please cite:
 
 import argparse
 import asyncio
+import json
 import os
 import shutil
 import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-import json
-import yaml
-import tempfile
-import base64
-import requests
-from openhands.events.action import CmdRunAction
 
+import base64
+import openai
+import requests
+import yaml
+from agentrisk.browsing import pre_login
 from agentrisk.db_setup import reset_postgres_db
+from openhands.controller.state.state import State
+from openhands.core.config import (
+    OpenHandsConfig,
+    SandboxConfig,
+    LLMConfig,
+    MCPConfig,
+    get_llm_config_arg,
+)
+from openhands.core.config.agent_config import AgentConfig
+from openhands.core.config.condenser_config import BrowserOutputCondenserConfig
+from openhands.core.logger import openhands_logger as logger
+from openhands.core.main import create_runtime, run_controller
+from openhands.events.action import CmdRunAction, MessageAction
+from openhands.events.observation import CmdOutputObservation, BrowserOutputObservation
+from openhands.runtime.base import Runtime
+from openhands.utils.async_utils import call_async_from_sync
 
 try:
     import tomllib
@@ -53,25 +69,6 @@ SERVICE_RESET_ENDPOINTS = {
     "plane": "reset-plane",
     "rocketchat": "reset-rocketchat",
 }
-
-from openhands.controller.state.state import State
-from openhands.core.config import (
-    OpenHandsConfig,
-    SandboxConfig,
-    LLMConfig,
-    MCPConfig,
-    get_llm_config_arg,
-)
-from openhands.core.config.agent_config import AgentConfig
-from openhands.core.logger import openhands_logger as logger
-from openhands.core.main import create_runtime, run_controller
-from openhands.events.action import CmdRunAction, MessageAction
-from openhands.events.observation import CmdOutputObservation, BrowserOutputObservation
-from openhands.runtime.base import Runtime
-from openhands.utils.async_utils import call_async_from_sync
-from openhands.core.config.condenser_config import BrowserOutputCondenserConfig
-import openai
-from agentrisk.browsing import pre_login
 
 client = openai.OpenAI(
     # api_key=OPENAI_KEY
@@ -400,9 +397,9 @@ def get_config(
     dependencies_path = os.path.join(task_path, "utils", "dependencies.yml")
     if os.path.exists(dependencies_path):
         with open(dependencies_path) as f:
-            dependencies = yaml.safe_load(f) or []
+            _dependencies = yaml.safe_load(f) or []  # loaded for validation
     else:
-        dependencies = []
+        _dependencies = []
 
     # Max_iterations (Max steps per task)
     max_iters = 30
@@ -594,7 +591,7 @@ def init_task_env(runtime: Runtime, hostname: str, env_llm_config: LLMConfig, ta
         logger.warning(f"task.md not found at {task_md_path}, skipping copy to /instruction/.")
     
     # encrypt the evaluator.py file
-    command = f"python /utils/encrypt.py && rm /utils/evaluator.py /utils/encrypt.py"
+    command = "python /utils/encrypt.py && rm /utils/evaluator.py /utils/encrypt.py"
     obs = runtime.run_action(CmdRunAction(command))
     assert obs.exit_code == 0
 

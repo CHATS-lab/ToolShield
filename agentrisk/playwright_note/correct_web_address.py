@@ -10,8 +10,6 @@ This will replace:
 """
 
 import argparse
-import os
-import re
 from pathlib import Path
 
 OLD_DOMAIN = "aa-0.chats-lab-gui-agent.uk"

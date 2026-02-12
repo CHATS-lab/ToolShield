@@ -51,9 +51,9 @@ class MCPClient(BaseModel):
 
             # --- HELPER SCHEMAS ---
             path_arg = {"type": "string", "description": "Absolute path"}
-            url_arg = {"type": "string", "description": "URL"}
+            _url_arg = {"type": "string", "description": "URL"}
             sql_arg = {"type": "string", "description": "SQL Query"}
-            selector_arg = {"type": "string", "description": "CSS Selector (e.g. '#submit-btn')"}
+            _selector_arg = {"type": "string", "description": "CSS Selector (e.g. '#submit-btn')"}
             no_arg_schema = {"type": "object", "properties": {}}
 
             # --- 1. FILESYSTEM SCHEMAS ---
