@@ -428,9 +428,8 @@ def generate(args: argparse.Namespace) -> None:
     if args.exp_file:
         exp_file = Path(args.exp_file)
     else:
-        model_short = model.split("/")[-1] if model else "model"
         tool_name = args.mcp_name.lower()
-        exp_file = output_dir.parent / f"experience_list_{model_short}_{tool_name}.json"
+        exp_file = output_dir.parent / f"{tool_name}-mcp.json"
     state_output = output_dir.parent / "exp_output"
     _run_iterative_runner(
         task_root=output_dir,
@@ -520,10 +519,8 @@ def main() -> None:
         generate(args)
         exp_file = Path(args.exp_file) if args.exp_file else None
         if exp_file is None:
-            model, _ = _require_env()
-            model_short = model.split("/")[-1] if model else "model"
             tool_name = args.mcp_name.lower()
-            exp_file = Path(args.output_path).parent / f"experience_list_{model_short}_{tool_name}.json"
+            exp_file = Path(args.output_path).parent / f"{tool_name}-mcp.json"
         import_experiences(_build_import_args_from_generate(args, exp_file))
         return
 

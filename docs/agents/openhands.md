@@ -10,15 +10,15 @@ OpenHands supports [microagents](https://docs.openhands.dev/sdk) — specialized
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
   --agent openhands
 ```
 
 You can import multiple tools — each appends to the same microagent file:
 
 ```bash
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json --agent openhands
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json --agent openhands
+toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent openhands
+toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent openhands
 ```
 
 ## Unload

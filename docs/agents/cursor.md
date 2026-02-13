@@ -10,15 +10,15 @@ Cursor stores user rules in a SQLite database (`state.vscdb`) under the key `aic
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
   --agent cursor
 ```
 
 You can import multiple tools — each appends to the existing rules:
 
 ```bash
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json --agent cursor
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json --agent cursor
+toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent cursor
+toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent cursor
 ```
 
 ## Unload

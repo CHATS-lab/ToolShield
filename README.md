@@ -61,27 +61,27 @@ Inject them in one command:
 ```bash
 # For Claude Code (filesystem example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json \
+  --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json \
   --agent claude_code
 
 # For Codex (postgres example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
   --agent codex
 
 # For OpenClaw (terminal example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json \
+  --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json \
   --agent openclaw
 
 # For Cursor (playwright example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_playwright.json \
+  --exp-file experiences/claude-sonnet-4.5/playwright-mcp.json \
   --agent cursor
 
 # For OpenHands (notion example)
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_notion.json \
+  --exp-file experiences/claude-sonnet-4.5/notion-mcp.json \
   --agent openhands
 ```
 
@@ -89,9 +89,9 @@ You can import multiple experience files to protect against different tool categ
 
 ```bash
 # Load filesystem + terminal + postgres experiences into Claude Code
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_fs.json --agent claude_code
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json --agent claude_code
-toolshield import --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json --agent claude_code
+toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent claude_code
+toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent claude_code
+toolshield import --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json --agent claude_code
 ```
 
 This appends safety guidelines to your agent's context file (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.openclaw/workspace/AGENTS.md`, Cursor's global user rules, or `~/.openhands/microagents/toolshield.md`). To remove them:
@@ -110,8 +110,6 @@ Available experiences in `experiences/`:
 | `gemini-3-flash-preview` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `qwen3-coder-plus` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `seed-1.6` | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-> **Note:** The filesystem experience file for `claude-sonnet-4.5` is named `_fs.json`; all other models use `_filesystem.json`.
 
 > More plug-and-play experiences for additional tools coming soon (including [Toolathlon](https://github.com/toolathlon) support)! Have a tool you'd like covered? [Open an issue](https://github.com/CHATS-Lab/ToolShield/issues).
 

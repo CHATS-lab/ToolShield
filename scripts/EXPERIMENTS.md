@@ -85,7 +85,7 @@ Import pre-generated experiences:
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_postgres.json \
+  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
   --agent codex
 ```
 
@@ -93,7 +93,7 @@ toolshield import \
 
 - Safety tree: `<output_path>/<mcp_name>_safety_tree.json`
 - Test cases: `<output_path>/task.*` and `<output_path>/multi_turn_task.*`
-- Experience list: `<output_path>/../experience_list_{model}_{tool}.json`
+- Experience list: `<output_path>/../{tool}-mcp.json`
 
 ## 3. Running Evaluation
 
@@ -121,7 +121,7 @@ python agentrisk/run_eval.py \
   --agent-llm-config agent \
   --env-llm-config env \
   --outputs-path output/eval \
-  --use-experience experiences/claude-sonnet-4.5/experience_list_claude-sonnet-4.5_terminal.json \
+  --use-experience experiences/claude-sonnet-4.5/terminal-mcp.json \
   --server-hostname localhost
 ```
 
