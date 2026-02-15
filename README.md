@@ -1,7 +1,7 @@
 
 
 <div align="center">
-<h1>ToolShield: Training-Free Defense for Multi-Turn Safety Risks in Tool-Using AI Agents</h1>
+<h1>ToolShield: Training-Free Defense for Tool-Using AI Agents</h1>
 
 [![PyPI](https://img.shields.io/pypi/v/toolshield?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/toolshield/) [![Python](https://img.shields.io/pypi/pyversions/toolshield?style=for-the-badge&logo=python&logoColor=white&label=)](https://pypi.org/project/toolshield/) [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE) [![Homepage](https://img.shields.io/badge/Homepage-4d8cd8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://unsafer-in-many-turns.github.io) [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-FFD21E?style=for-the-badge)](https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk)
 
@@ -17,10 +17,10 @@
 
 <p align="center">
   <a href="#quickstart">Quickstart</a> |
-  <a href="#use-pre-generated-experiences">Pre-generated</a> |
-  <a href="#generate-your-own">Generate Your Own</a> |
-  <a href="#extend-to-new-tools">Extend</a> |
-  <a href="#mt-agentrisk-benchmark">Benchmark</a> |
+  <a href="#use-pre-generated-experiences">Pre-Generated Safety Experiences</a> |
+  <a href="#generate-your-own">Generate Your Own Experiences</a> |
+  <a href="#extend-to-new-tools">Extend to New Tools</a> |
+  <a href="#mt-agentrisk-benchmark">Multi-Turn Safety Benchmark</a> |
   <a href="#citation">Citation</a>
 </p>
 
