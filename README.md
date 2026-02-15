@@ -20,7 +20,7 @@
   <a href="#use-pre-generated-experiences">Pre-Generated Safety Experiences</a> |
   <a href="#generate-your-own">Generate Your Own</a> |
   <a href="#extend-to-new-tools">Extend to New Tools</a> |
-  <a href="#mt-agentrisk-benchmark">Multi-Turn Safety Benchmark</a> |
+  <a href="#mt-agentrisk-benchmark">Safety Benchmark</a> |
   <a href="#citation">Citation</a>
 </p>
 
