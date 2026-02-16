@@ -111,7 +111,7 @@ Available experiences in `experiences/`:
 | `qwen3-coder-plus` | ✅ | ✅ | ✅ | ✅ | ✅ |
 | `seed-1.6` | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-> More plug-and-play experiences for additional tools coming soon (including [Toolathlon](https://github.com/toolathlon) support)! Have a tool you'd like covered? [Open an issue](https://github.com/CHATS-Lab/ToolShield/issues).
+> More plug-and-play experiences for additional tools coming soon (including [Toolathlon](https://github.com/hkust-nlp/Toolathlon) support)! Have a tool you'd like covered? [Open an issue](https://github.com/CHATS-Lab/ToolShield/issues).
 
 ### Generate Your Own
 
