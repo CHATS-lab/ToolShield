@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "toolshield"
-version = "0.1.0"
-description = "Training-free defense for multi-turn safety risks in tool-using AI agents"
+version = "0.1.1"
+description = "ToolShield: Training-Free Defense for Tool-Using AI Agents"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
-    { name = "Xu Li", email = "li.xu2@northeastern.edu" },
+    { name = "Xu Li", email = "lixu20040929@gmail.com" },
     { name = "Simon Yu", email = "simon011130@gmail.com" },
 ]
 keywords = ["llm", "safety", "mcp", "agents", "toolshield"]
@@ -30,6 +30,7 @@ dependencies = [
     "requests>=2.28",
     "tqdm>=4.66",
     "json-repair>=0.20",
+    "aiohttp>=3.9",
 ]
 
 [project.optional-dependencies]

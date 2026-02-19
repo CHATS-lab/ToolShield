@@ -260,8 +260,80 @@ def _build_guidelines_text(
     return "\n" + EXPERIENCE_HEADER + "\n\n" + intro + tool_line + block
 
 
+def _bundled_experience_dir(model: str = "claude-sonnet-4.5") -> Path:
+    """Return the path to bundled experiences shipped with the package."""
+    return Path(__file__).resolve().parent / "experiences" / model
+
+
+def list_experiences(_args: argparse.Namespace) -> None:
+    """Print all bundled models and their experience files."""
+    base = Path(__file__).resolve().parent / "experiences"
+    if not base.is_dir():
+        print("No bundled experiences found.")
+        return
+    models = sorted(d.name for d in base.iterdir() if d.is_dir())
+    if not models:
+        print("No bundled experiences found.")
+        return
+    print(f"{'Model':<30} Experience files")
+    print("-" * 70)
+    for model in models:
+        files = sorted(f.name for f in (base / model).glob("*.json"))
+        print(f"{model:<30} {', '.join(files)}")
+
+
 def import_experiences(args: argparse.Namespace) -> None:
-    exp_path = Path(args.exp_file).expanduser()
+    # Handle --all: import every bundled experience file for the selected model
+    if getattr(args, "import_all", False):
+        model = getattr(args, "model", "claude-sonnet-4.5") or "claude-sonnet-4.5"
+        exp_dir = _bundled_experience_dir(model)
+        if not exp_dir.is_dir():
+            print(f"Bundled experience directory not found: {exp_dir}")
+            sys.exit(1)
+        exp_files = sorted(exp_dir.glob("*.json"))
+        if not exp_files:
+            print(f"No experience files found in {exp_dir}")
+            sys.exit(1)
+        for ef in exp_files:
+            print(f"\n--- Importing {ef.name} ---")
+            single_args = argparse.Namespace(
+                exp_file=str(ef),
+                agent=args.agent,
+                source_location=getattr(args, "source_location", None),
+                import_all=False,
+            )
+            import_experiences(single_args)
+        print(f"\nImported {len(exp_files)} experience file(s) into {args.agent}.")
+        return
+
+    if not args.exp_file:
+        print("Error: --exp-file is required when --all is not set.")
+        sys.exit(1)
+
+    raw = args.exp_file
+    candidate = Path(raw).expanduser()
+    if candidate.exists():
+        exp_path = candidate
+    elif "/" not in raw and "\\" not in raw:
+        # Bare name — resolve against bundled experiences
+        model = getattr(args, "model", "claude-sonnet-4.5") or "claude-sonnet-4.5"
+        bundled = _bundled_experience_dir(model) / raw
+        if not raw.endswith(".json"):
+            bundled = _bundled_experience_dir(model) / (raw + ".json")
+        if bundled.exists():
+            exp_path = bundled
+        else:
+            avail = sorted(p.name for p in _bundled_experience_dir(model).glob("*.json")) if _bundled_experience_dir(model).is_dir() else []
+            msg = f"Experience file not found: {raw!r}"
+            if avail:
+                msg += f"\nAvailable bundled experiences for {model}: {', '.join(avail)}"
+            else:
+                models = sorted(p.name for p in (Path(__file__).resolve().parent / "experiences").iterdir() if p.is_dir())
+                msg += f"\nNo bundled experiences for model {model!r}. Available models: {', '.join(models)}"
+            print(msg)
+            sys.exit(1)
+    else:
+        exp_path = candidate
     experiences = _load_experiences(exp_path)
     if not experiences:
         print("No experiences found in the JSON file. Nothing to import.")
@@ -453,6 +525,82 @@ def _build_import_args_from_generate(args: argparse.Namespace, exp_file: Path) -
     )
 
 
+def auto_discover(args: argparse.Namespace) -> None:
+    """Scan localhost for MCP servers, run ToolShield pipeline for each, and import results."""
+    import asyncio
+
+    from toolshield.mcp_scan import main as scan_main
+
+    start_port = getattr(args, "start_port", 8000)
+    end_port = getattr(args, "end_port", 10000)
+
+    found = asyncio.run(scan_main(start_port, end_port))
+    if not found:
+        print("No MCP servers discovered. Nothing to do.")
+        return
+
+    model, _ = _require_env()
+    # Sanitize model name for directory/filenames: "anthropic/claude-sonnet-4.5" -> "anthropic-claude-sonnet-4.5"
+    model_slug = model.replace("/", "-")
+
+    results = []
+    for server in found:
+        server_name = server["name"].lower().replace(" ", "-")
+        label = f"{model_slug}_{server_name}"
+        output_path = Path("output") / label
+        print(f"\n{'='*60}")
+        print(f"Processing: {server['name']} at {server['url']}")
+        print(f"Output: {output_path}")
+        print(f"{'='*60}")
+
+        gen_args = argparse.Namespace(
+            mcp_name=server["name"],
+            mcp_server=server["url"],
+            output_path=str(output_path),
+            context_guideline=None,
+            exp_file=None,
+            multi_turn=False,
+            agent_config=args.agent_config,
+            eval_dir=args.eval_dir,
+            server_hostname=args.server_hostname,
+            debug=args.debug,
+        )
+        try:
+            generate(gen_args)
+        except Exception as e:
+            print(f"Error processing {server['name']}: {e}")
+            results.append((server["name"], "FAILED", str(e)))
+            continue
+
+        # Derive experience file path (matches generate() convention)
+        tool_name = server["name"].lower()
+        exp_file = output_path.parent / f"{tool_name}-mcp.json"
+
+        if exp_file.exists():
+            imp_args = argparse.Namespace(
+                exp_file=str(exp_file),
+                agent=args.agent,
+                source_location=getattr(args, "source_location", None),
+                import_all=False,
+            )
+            try:
+                import_experiences(imp_args)
+                results.append((server["name"], "OK", str(exp_file)))
+            except Exception as e:
+                print(f"Error importing experiences for {server['name']}: {e}")
+                results.append((server["name"], "IMPORT_FAILED", str(e)))
+        else:
+            print(f"Warning: expected experience file not found: {exp_file}")
+            results.append((server["name"], "NO_EXP_FILE", str(exp_file)))
+
+    # Summary
+    print(f"\n{'='*60}")
+    print("Auto-discover summary:")
+    print(f"{'='*60}")
+    for name, status, detail in results:
+        print(f"  {name:<25} {status:<15} {detail}")
+
+
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
@@ -491,7 +639,9 @@ def main() -> None:
     gen.set_defaults(func=generate)
 
     imp = sub.add_parser("import", help="Inject experience guidelines into agent instructions")
-    imp.add_argument("--exp-file", required=True, help="Experience JSON to inject")
+    imp.add_argument("--exp-file", default=None, help="Experience JSON to inject (name or path; required unless --all)")
+    imp.add_argument("--model", default="claude-sonnet-4.5", help="Bundled model to use (default: claude-sonnet-4.5)")
+    imp.add_argument("--all", action="store_true", dest="import_all", help="Import all bundled experiences for the selected model")
     imp.add_argument(
         "--agent",
         choices=["claude_code", "codex", "openclaw", "cursor", "openhands"],
@@ -500,6 +650,25 @@ def main() -> None:
     )
     imp.add_argument("--source_location", default=None, help="Optional target file path")
     imp.set_defaults(func=import_experiences)
+
+    lst = sub.add_parser("list", help="List all bundled experience files")
+    lst.set_defaults(func=list_experiences)
+
+    auto_p = sub.add_parser("auto", help="Auto-discover MCP servers on localhost and run full pipeline")
+    auto_p.add_argument(
+        "--agent",
+        required=True,
+        choices=["claude_code", "codex", "openclaw", "cursor", "openhands"],
+        help="Target agent type",
+    )
+    auto_p.add_argument("--source_location", default=None, help="Optional target file path")
+    auto_p.add_argument("--start-port", type=int, default=8000, help="Start of port scan range (default: 8000)")
+    auto_p.add_argument("--end-port", type=int, default=10000, help="End of port scan range (default: 10000)")
+    auto_p.add_argument("--agent-config", type=Path, default=default_agent_config(), help="Agent config TOML")
+    auto_p.add_argument("--eval-dir", type=Path, default=default_eval_dir(), help="Evaluation directory")
+    auto_p.add_argument("--server-hostname", default=os.environ.get("SERVER_HOST", "localhost"), help="Runtime server hostname")
+    auto_p.add_argument("--debug", action="store_true", help="Show verbose logs")
+    auto_p.set_defaults(func=auto_discover)
 
     unl = sub.add_parser("unload", help="Remove injected experience guidelines from agent instructions")
     unl.add_argument(

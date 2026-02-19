@@ -10,15 +10,15 @@ ToolShield appends guidelines to `~/.claude/CLAUDE.md`, which Claude Code loads 
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
+  --exp-file postgres-mcp.json \
   --agent claude_code
 ```
 
 You can import multiple tools — each appends to the same file:
 
 ```bash
-toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent claude_code
-toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent claude_code
+toolshield import --exp-file terminal-mcp.json --agent claude_code
+toolshield import --exp-file filesystem-mcp.json --agent claude_code
 ```
 
 ## Unload

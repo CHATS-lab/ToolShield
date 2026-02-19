@@ -1,7 +1,7 @@
 
 
 <div align="center">
-<h1>ToolShield: Training-Free Defense for Tool-Using AI Agents</h1>
+<h1>ToolShield: Just One Command to Guard Your Coding Agent</h1>
 
 [![PyPI](https://img.shields.io/pypi/v/toolshield?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/toolshield/) [![Python](https://img.shields.io/pypi/pyversions/toolshield?style=for-the-badge&logo=python&logoColor=white&label=)](https://pypi.org/project/toolshield/) [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE) [![Homepage](https://img.shields.io/badge/Homepage-4d8cd8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://unsafer-in-many-turns.github.io) [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-FFD21E?style=for-the-badge)](https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk)
 
@@ -24,7 +24,7 @@
   <a href="#citation">Citation</a>
 </p>
 
-**ToolShield** is a training-free, tool-agnostic defense for AI agents that use MCP tools. It works by letting the agent explore tool functionality in a sandbox, learning from its own executions, and distilling safety guidelines before deployment. Reduces attack success rate by **30%** on average — with zero fine-tuning.
+**ToolShield** is a training-free, tool-agnostic defense for AI agents that use MCP tools. Just `pip install toolshield` and a single command guards your coding agent with safety experiences — no API keys, no sandbox setup, no fine-tuning. Reduces attack success rate by **30%** on average.
 
 <p align="center">
   <img src="assets/overview.png" alt="Overview" width="75%">
@@ -56,42 +56,49 @@ We ship safety experiences for 6 models across 5 tools, with plug-and-play suppo
   <img src="https://img.shields.io/badge/%F0%9F%A6%9E_OpenClaw-FF6B6B?style=flat-square" alt="OpenClaw" />
 </a>
 
-Inject them in one command:
+Inject them in one command — no need to know where files are installed:
 
 ```bash
 # For Claude Code (filesystem example)
-toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json \
-  --agent claude_code
+toolshield import --exp-file filesystem-mcp.json --agent claude_code
 
 # For Codex (postgres example)
-toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
-  --agent codex
+toolshield import --exp-file postgres-mcp.json --agent codex
 
 # For OpenClaw (terminal example)
-toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json \
-  --agent openclaw
+toolshield import --exp-file terminal-mcp.json --agent openclaw
 
 # For Cursor (playwright example)
-toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/playwright-mcp.json \
-  --agent cursor
+toolshield import --exp-file playwright-mcp.json --agent cursor
 
 # For OpenHands (notion example)
-toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/notion-mcp.json \
-  --agent openhands
+toolshield import --exp-file notion-mcp.json --agent openhands
 ```
 
-You can import multiple experience files to protect against different tool categories:
+Use experiences from a different model with `--model`:
 
 ```bash
-# Load filesystem + terminal + postgres experiences into Claude Code
-toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent claude_code
-toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent claude_code
-toolshield import --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json --agent claude_code
+toolshield import --exp-file filesystem-mcp.json --model gpt-5.2 --agent claude_code
+```
+
+Or import **all** bundled experiences (all 5 tools) in one shot:
+
+```bash
+toolshield import --all --agent claude_code
+```
+
+You can also import multiple experience files individually:
+
+```bash
+toolshield import --exp-file filesystem-mcp.json --agent claude_code
+toolshield import --exp-file terminal-mcp.json --agent claude_code
+toolshield import --exp-file postgres-mcp.json --agent claude_code
+```
+
+See all available bundled experiences:
+
+```bash
+toolshield list
 ```
 
 This appends safety guidelines to your agent's context file (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.openclaw/workspace/AGENTS.md`, Cursor's global user rules, or `~/.openhands/microagents/toolshield.md`). To remove them:
@@ -100,7 +107,7 @@ This appends safety guidelines to your agent's context file (`~/.claude/CLAUDE.m
 toolshield unload --agent claude_code
 ```
 
-Available experiences in `experiences/`:
+Available bundled experiences (run `toolshield list` to see all):
 
 | Model | ![Filesystem](https://img.shields.io/badge/-Filesystem-black?style=flat-square&logo=files&logoColor=white) | ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-black?style=flat-square&logo=postgresql&logoColor=white) | ![Terminal](https://img.shields.io/badge/-Terminal-black?style=flat-square&logo=gnometerminal&logoColor=white) | ![Chrome](https://img.shields.io/badge/-Chrome-black?style=flat-square&logo=googlechrome&logoColor=white) | ![Notion](https://img.shields.io/badge/-Notion-black?style=flat-square&logo=notion&logoColor=white) |
 |-------|:---:|:---:|:---:|:---:|:---:|
@@ -137,6 +144,16 @@ toolshield generate \
   --mcp_server http://localhost:9091 \
   --output_path output/postgres
 ```
+
+### Auto-discover Local MCP Servers
+
+Automatically scan localhost for running MCP servers, run the full pipeline for each, and inject the results:
+
+```bash
+toolshield auto --agent codex
+```
+
+This scans ports 8000-10000 by default (configurable with `--start-port` / `--end-port`).
 
 ### Extend to New Tools
 
@@ -175,12 +192,12 @@ Add `--use-experience <path>` to evaluate with ToolShield defense.
 
 ```
 ToolShield/
-├── toolshield/          # pip-installable defense package
-├── agentrisk/           # evaluation framework (see agentrisk/README.md)
-├── experiences/         # pre-generated safety experiences (6 models × 5 tools)
-├── workspaces/          # MT-AgentRisk task data (from HuggingFace)
-├── docker/              # Dockerfiles and compose
-└── scripts/             # experiment reproduction guides
+├── toolshield/              # pip-installable defense package
+│   └── experiences/         # bundled safety experiences (6 models × 5 tools)
+├── agentrisk/               # evaluation framework (see agentrisk/README.md)
+├── workspaces/              # MT-AgentRisk task data (from HuggingFace)
+├── docker/                  # Dockerfiles and compose
+└── scripts/                 # experiment reproduction guides
 ```
 
 ## Acknowledgments

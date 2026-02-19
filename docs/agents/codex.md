@@ -10,15 +10,15 @@ ToolShield appends guidelines to `~/.codex/AGENTS.md`, which Codex loads as pers
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
+  --exp-file postgres-mcp.json \
   --agent codex
 ```
 
 You can import multiple tools — each appends to the same file:
 
 ```bash
-toolshield import --exp-file experiences/claude-sonnet-4.5/terminal-mcp.json --agent codex
-toolshield import --exp-file experiences/claude-sonnet-4.5/filesystem-mcp.json --agent codex
+toolshield import --exp-file terminal-mcp.json --agent codex
+toolshield import --exp-file filesystem-mcp.json --agent codex
 ```
 
 ## Unload
