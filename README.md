@@ -194,6 +194,15 @@ We thank the authors of the following projects for their contributions:
 ## Citation
 
 ```bibtex
+@misc{li2026unsaferturnsbenchmarkingdefending,
+      title={Unsafer in Many Turns: Benchmarking and Defending Multi-Turn Safety Risks in Tool-Using Agents},
+      author={Xu Li and Simon Yu and Minzhou Pan and Yiyou Sun and Bo Li and Dawn Song and Xue Lin and Weiyan Shi},
+      year={2026},
+      eprint={2602.13379},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2602.13379},
+}
 ```
 
 ## License
