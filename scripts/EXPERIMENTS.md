@@ -85,7 +85,7 @@ Import pre-generated experiences:
 
 ```bash
 toolshield import \
-  --exp-file experiences/claude-sonnet-4.5/postgres-mcp.json \
+  --exp-file toolshield/experiences/claude-sonnet-4.5/postgres-mcp.json \
   --agent codex
 ```
 
@@ -121,7 +121,7 @@ python agentrisk/run_eval.py \
   --agent-llm-config agent \
   --env-llm-config env \
   --outputs-path output/eval \
-  --use-experience experiences/claude-sonnet-4.5/terminal-mcp.json \
+  --use-experience toolshield/experiences/claude-sonnet-4.5/terminal-mcp.json \
   --server-hostname localhost
 ```
 

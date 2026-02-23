@@ -47,7 +47,7 @@ python agentrisk/run_eval.py \
   --agent-llm-config agent \
   --env-llm-config env \
   --outputs-path output/eval \
-  --use-experience experiences/claude-sonnet-4.5/terminal-mcp.json \
+  --use-experience toolshield/experiences/claude-sonnet-4.5/terminal-mcp.json \
   --server-hostname localhost
 
 # Batch evaluation
@@ -72,7 +72,7 @@ The pipeline has four stages, orchestrated by `cli.py`:
 3. **Test Case Generation** (`tree_generation.py`) — Creates single-turn (`task.X.md`) and multi-turn (`task-turn-*.md`) test tasks from harm scenarios
 4. **Experience Distillation** (`exp_generate.py`, `iterative_exp_runner.py`) — Execute tasks, capture trajectories, extract safety guidelines into JSON experience files
 
-Path configuration is centralized in `_paths.py` and can be overridden via environment variables (`TOOLSHIELD_REPO_ROOT`, etc.). Prompt templates live in `prompts.py` and `post_process_prompts.py`. Pre-generated experiences for multiple models are in `experiences/`.
+Path configuration is centralized in `_paths.py` and can be overridden via environment variables (`TOOLSHIELD_REPO_ROOT`, etc.). Prompt templates live in `prompts.py` and `post_process_prompts.py`. Pre-generated experiences for multiple models are bundled in `toolshield/experiences/`.
 
 ### Evaluation Framework (`agentrisk/`)
 
