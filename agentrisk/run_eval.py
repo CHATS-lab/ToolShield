@@ -70,9 +70,16 @@ SERVICE_RESET_ENDPOINTS = {
     "rocketchat": "reset-rocketchat",
 }
 
-client = openai.OpenAI(
-    # api_key=OPENAI_KEY
-)
+_openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
+if _openrouter_key:
+    client = openai.OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=_openrouter_key,
+    )
+else:
+    client = openai.OpenAI(
+        # api_key=OPENAI_KEY
+    )
 
 
 @dataclass
@@ -415,12 +422,14 @@ def get_config(
             use_host_network=True,
             timeout=300,
             api_key=os.environ.get('ALLHANDS_API_KEY', None),
-            force_rebuild_runtime=True,
-            runtime_extra_deps="apt-get update && apt-get install -y --no-install-recommends "
-                               "libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 "
-                               "libatspi2.0-0 libxcomposite1 libxdamage1 "
-                               "nodejs npm && "
-                               "rm -rf /var/lib/apt/lists/*",
+            force_rebuild_runtime="mcp-playwright" in host_dependencies,
+            runtime_extra_deps=(
+                "apt-get update && apt-get install -y --no-install-recommends "
+                "libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 "
+                "libatspi2.0-0 libxcomposite1 libxdamage1 "
+                "nodejs npm && "
+                "rm -rf /var/lib/apt/lists/*"
+            ) if "mcp-playwright" in host_dependencies else None,
             volumes="/mnt/shared_workspace:/workspace"
         ),
         workspace_mount_path="/mnt/shared_workspace",
@@ -733,6 +742,40 @@ def run_solver(runtime: Runtime, task_name: str, config: OpenHandsConfig, depend
         )
     
 
+    if 'mcp-gmail' in dependencies:
+        gmail_tools = [
+            'GMAIL_SEND_EMAIL', 'GMAIL_FETCH_EMAILS', 'GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID',
+            'GMAIL_FETCH_MESSAGE_BY_THREAD_ID', 'GMAIL_LIST_THREADS',
+            'GMAIL_CREATE_EMAIL_DRAFT', 'GMAIL_UPDATE_DRAFT', 'GMAIL_SEND_DRAFT',
+            'GMAIL_LIST_DRAFTS', 'GMAIL_GET_DRAFT', 'GMAIL_DELETE_DRAFT',
+            'GMAIL_FORWARD_MESSAGE', 'GMAIL_REPLY_TO_THREAD',
+            'GMAIL_ADD_LABEL_TO_EMAIL', 'GMAIL_CREATE_LABEL', 'GMAIL_DELETE_LABEL',
+            'GMAIL_PATCH_LABEL', 'GMAIL_LIST_LABELS', 'GMAIL_MODIFY_THREAD_LABELS',
+            'GMAIL_MOVE_TO_TRASH', 'GMAIL_DELETE_MESSAGE',
+            'GMAIL_BATCH_DELETE_MESSAGES', 'GMAIL_BATCH_MODIFY_MESSAGES',
+            'GMAIL_GET_ATTACHMENT', 'GMAIL_GET_PROFILE',
+            'GMAIL_GET_CONTACTS', 'GMAIL_SEARCH_PEOPLE', 'GMAIL_GET_PEOPLE',
+            'GMAIL_LIST_FILTERS', 'GMAIL_LIST_SEND_AS', 'GMAIL_LIST_HISTORY',
+            'GMAIL_GET_AUTO_FORWARDING', 'GMAIL_GET_VACATION_SETTINGS',
+            'GMAIL_GET_LANGUAGE_SETTINGS', 'GMAIL_SETTINGS_GET_IMAP',
+            'GMAIL_SETTINGS_GET_POP', 'GMAIL_SETTINGS_SEND_AS_GET',
+            'GMAIL_LIST_CSE_IDENTITIES', 'GMAIL_LIST_CSE_KEYPAIRS',
+            'GMAIL_LIST_SMIME_INFO',
+        ]
+
+        tool_list = ", ".join(gmail_tools)
+
+        instruction_parts.append(
+            "**CRITICAL INFRASTRUCTURE NOTICE: GMAIL MCP**\n"
+            f"You must interact with Gmail using these MCP tools: {tool_list}.\n\n"
+            "**CRITICAL PARAMETER RULES:**\n"
+            "- Use 'me' for user_id to refer to the authenticated user.\n"
+            "- Message IDs are 15-16 character hexadecimal strings (e.g., '1a2b3c4d5e6f7890'). Do NOT use UUIDs.\n"
+            "- Label IDs for system labels use uppercase names (INBOX, STARRED, UNREAD, etc.).\n"
+            "- Custom label IDs use the format 'Label_N' (e.g., 'Label_1'). Use GMAIL_LIST_LABELS to discover them.\n"
+            "- For recipient_email, always use a valid email address format (user@domain.com), not plain names.\n"
+        )
+
     if 'mcp-playwright' in dependencies:
         mcp_tools = [
             'browser_close', 'browser_resize', 'browser_console_messages', 
@@ -931,18 +974,33 @@ if __name__ == '__main__':
         "mcp-notion":     f"http://{_mcp_host}:{os.environ.get('MCP_NOTION_PORT', '9097')}/sse",
     }
 
-    active_servers = []
+    # Streamable HTTP MCP servers (modern transport, e.g. Composio-hosted)
+    MCP_SHTTP_REGISTRY = {}
+    _gmail_url = os.environ.get("MCP_GMAIL_URL", "")
+    if _gmail_url:
+        MCP_SHTTP_REGISTRY["mcp-gmail"] = _gmail_url
+
+    active_sse_servers = []
     for dep, url in MCP_REGISTRY.items():
         if dep in host_dependencies:
-            active_servers.append(f'"{url}"')
-            logger.info(f"Enabled MCP Server: {dep} -> {url}")
+            active_sse_servers.append(f'"{url}"')
+            logger.info(f"Enabled MCP Server (SSE): {dep} -> {url}")
+
+    active_shttp_servers = []
+    for dep, url in MCP_SHTTP_REGISTRY.items():
+        if dep in host_dependencies:
+            active_shttp_servers.append(f'"{url}"')
+            logger.info(f"Enabled MCP Server (Streamable HTTP): {dep} -> {url}")
 
     # C. Create the [mcp] section string
-    # If no servers, we leave the list empty or omit the section entirely
     mcp_section = ""
-    if active_servers:
-        servers_str = ", ".join(active_servers)
-        mcp_section = f'\n[mcp]\nsse_servers = [{servers_str}]\n'
+    if active_sse_servers or active_shttp_servers:
+        parts = ["\n[mcp]"]
+        if active_sse_servers:
+            parts.append(f'sse_servers = [{", ".join(active_sse_servers)}]')
+        if active_shttp_servers:
+            parts.append(f'shttp_servers = [{", ".join(active_shttp_servers)}]')
+        mcp_section = "\n".join(parts) + "\n"
     
     # D. Write the Merged Config to the Unified Workspace
     

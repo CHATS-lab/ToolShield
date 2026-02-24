@@ -2,6 +2,9 @@
 
 __version__ = "0.1.0"
 
-from toolshield.inspector import MCPInspector
+from toolshield.inspector import MCPSSEInspector, MCPStreamableHTTPInspector
 
-__all__ = ["MCPInspector", "__version__"]
+# Backwards compatibility
+MCPInspector = MCPSSEInspector
+
+__all__ = ["MCPInspector", "MCPSSEInspector", "MCPStreamableHTTPInspector", "__version__"]

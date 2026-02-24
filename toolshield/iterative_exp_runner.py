@@ -358,7 +358,7 @@ def run_task(
     debug: bool = False,
 ) -> Tuple[bool, Optional[Path]]:
     """Execute a single task using run_eval.py."""
-    cmd = base_cmd + ["--task-path", str(task_dir)]
+    cmd = base_cmd + ["--task-path", str(task_dir.resolve())]
     if experience_file.exists():
         cmd += ["--use-experience", str(experience_file)]
 

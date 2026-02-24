@@ -21,6 +21,7 @@ from toolshield.prompts import (
     BENIGN_TASK_GENERATION_USER_TEMPLATE,
     BENIGN_TEST_CASE_GENERATION_SYSTEM_PROMPT,
     POSTGRES_SCHEMA_CONTEXT,
+    GMAIL_ACCOUNT_CONTEXT,
     # New imports for multi-turn
     TOOL_CAPABILITIES,
     MULTI_TURN_DECOMPOSITION_SYSTEM_PROMPT,
@@ -72,7 +73,8 @@ MCP_DEPENDENCIES = {
     "postgres": ["mcp-postgres"],
     "terminal": [],
     "playwright": ["mcp-playwright"],
-    "notion": ["mcp-notion"]
+    "notion": ["mcp-notion"],
+    "gmail": ["mcp-gmail"],
 }
 MCP_TOOLSETS = {
     "filesystem": [
@@ -108,18 +110,37 @@ MCP_TOOLSETS = {
         'browser_tabs', 'browser_wait_for'
     ],
     "notion": [
-        'API-get-user', 'API-get-users', 'API-get-self', 
-        'API-post-search', 'API-get-block-children', 'API-patch-block-children', 
-        'API-retrieve-a-block', 'API-update-a-block', 'API-delete-a-block', 
-        'API-retrieve-a-page', 'API-patch-page', 'API-post-page', 'API-retrieve-a-page-property', 
-        'API-retrieve-a-comment', 'API-create-a-comment', 'API-query-data-source', 
-        'API-retrieve-a-data-source', 'API-update-a-data-source', 'API-create-a-data-source', 
+        'API-get-user', 'API-get-users', 'API-get-self',
+        'API-post-search', 'API-get-block-children', 'API-patch-block-children',
+        'API-retrieve-a-block', 'API-update-a-block', 'API-delete-a-block',
+        'API-retrieve-a-page', 'API-patch-page', 'API-post-page', 'API-retrieve-a-page-property',
+        'API-retrieve-a-comment', 'API-create-a-comment', 'API-query-data-source',
+        'API-retrieve-a-data-source', 'API-update-a-data-source', 'API-create-a-data-source',
         'API-list-data-source-templates', 'API-move-page'
-    ]
+    ],
+    "gmail": [
+        'GMAIL_SEND_EMAIL', 'GMAIL_FETCH_EMAILS', 'GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID',
+        'GMAIL_FETCH_MESSAGE_BY_THREAD_ID', 'GMAIL_LIST_THREADS',
+        'GMAIL_CREATE_EMAIL_DRAFT', 'GMAIL_UPDATE_DRAFT', 'GMAIL_SEND_DRAFT',
+        'GMAIL_LIST_DRAFTS', 'GMAIL_GET_DRAFT', 'GMAIL_DELETE_DRAFT',
+        'GMAIL_FORWARD_MESSAGE', 'GMAIL_REPLY_TO_THREAD',
+        'GMAIL_ADD_LABEL_TO_EMAIL', 'GMAIL_CREATE_LABEL', 'GMAIL_DELETE_LABEL',
+        'GMAIL_PATCH_LABEL', 'GMAIL_LIST_LABELS', 'GMAIL_MODIFY_THREAD_LABELS',
+        'GMAIL_MOVE_TO_TRASH', 'GMAIL_DELETE_MESSAGE',
+        'GMAIL_BATCH_DELETE_MESSAGES', 'GMAIL_BATCH_MODIFY_MESSAGES',
+        'GMAIL_GET_ATTACHMENT', 'GMAIL_GET_PROFILE',
+        'GMAIL_GET_CONTACTS', 'GMAIL_SEARCH_PEOPLE', 'GMAIL_GET_PEOPLE',
+        'GMAIL_LIST_FILTERS', 'GMAIL_LIST_SEND_AS', 'GMAIL_LIST_HISTORY',
+        'GMAIL_GET_AUTO_FORWARDING', 'GMAIL_GET_VACATION_SETTINGS',
+        'GMAIL_GET_LANGUAGE_SETTINGS', 'GMAIL_SETTINGS_GET_IMAP',
+        'GMAIL_SETTINGS_GET_POP', 'GMAIL_SETTINGS_SEND_AS_GET',
+        'GMAIL_LIST_CSE_IDENTITIES', 'GMAIL_LIST_CSE_KEYPAIRS',
+        'GMAIL_LIST_SMIME_INFO',
+    ],
 }
 
 # Mapping from MCP type to TOOL_CAPABILITIES key
-SUPPORT_TOOL_ORDER = ["filesystem", "terminal", "browser"]
+SUPPORT_TOOL_ORDER = ["filesystem", "terminal", "browser", "gmail"]
 
 API_TIMEOUT = 300
 
@@ -227,6 +248,12 @@ def _maybe_append_notion_context(prompt: str, mcp_type: str) -> str:
         return f"{prompt}\n\n{NOTION_RESOURCES}"
     return prompt
 
+def _maybe_append_gmail_context(prompt: str, mcp_type: str) -> str:
+    """Append Gmail account context for Gmail prompts."""
+    if mcp_type == "gmail":
+        return f"{prompt}\n\n**GMAIL ACCOUNT CONTEXT:**\n{GMAIL_ACCOUNT_CONTEXT}"
+    return prompt
+
 def _maybe_append_playwright_context(prompt: str, mcp_type: str, application: Any = None) -> str:
     """Append application URL/credentials context for Playwright prompts."""
     if mcp_type != "playwright":
@@ -291,6 +318,7 @@ def generate_task_files(node_info: Dict[str, str], mcp_name: str, is_benign: boo
     system_prompt = _maybe_append_schema_context(system_prompt, mcp_type)
     system_prompt = _maybe_append_playwright_context(system_prompt, mcp_type, node_info.get('application'))
     system_prompt = _maybe_append_notion_context(system_prompt, mcp_type)
+    system_prompt = _maybe_append_gmail_context(system_prompt, mcp_type)
 
 
     # 3. Call the LLM
