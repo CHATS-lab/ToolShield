@@ -1,4 +1,4 @@
-"""MCP server inspection — connect via SSE and enumerate available tools."""
+"""MCP server inspection — connect via SSE or Streamable HTTP and enumerate available tools."""
 
 from __future__ import annotations
 
@@ -11,8 +11,79 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 
-class MCPInspector:
-    """Minimal MCP inspector to list tool names via SSE JSON-RPC."""
+def _parse_sse_data(text: str) -> Optional[dict]:
+    """Extract the JSON-RPC message from an SSE-formatted response body."""
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("data:"):
+            data = line[len("data:"):].strip()
+            try:
+                return json.loads(data)
+            except json.JSONDecodeError:
+                continue
+    return None
+
+
+class MCPStreamableHTTPInspector:
+    """MCP inspector using Streamable HTTP transport (MCP 2025-03-26+).
+
+    Each JSON-RPC request is a plain POST; the response may arrive as
+    ``application/json`` or as an SSE stream (``text/event-stream``) with
+    a single ``event: message`` frame.
+    """
+
+    def __init__(self, url: str):
+        self.url = url
+        self._id = 0
+
+    def _next_id(self) -> int:
+        self._id += 1
+        return self._id
+
+    def _send(self, method: str, params: Optional[dict] = None) -> dict:
+        rid = self._next_id()
+        payload: dict = {"jsonrpc": "2.0", "id": rid, "method": method}
+        if params is not None:
+            payload["params"] = params
+
+        resp = requests.post(
+            self.url,
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+
+        ct = resp.headers.get("Content-Type", "")
+        if "text/event-stream" in ct:
+            msg = _parse_sse_data(resp.text)
+            if msg is not None:
+                return msg
+            return {"error": "failed to parse SSE response"}
+        # Plain JSON
+        return resp.json()
+
+    def initialize(self) -> dict:
+        return self._send("initialize", {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "toolshield-inspector", "version": "0.1.0"},
+        })
+
+    def list_tools(self) -> dict:
+        return self._send("tools/list", {})
+
+
+class MCPSSEInspector:
+    """MCP inspector using legacy SSE transport (MCP 2024-11-05).
+
+    Opens a persistent GET /sse connection, receives an ``endpoint`` event
+    with the POST URL, then sends JSON-RPC messages and reads responses
+    from the SSE stream.
+    """
 
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip("/")
@@ -90,12 +161,27 @@ class MCPInspector:
         return self._send("tools/list", {})
 
 
+def _is_streamable_http(url: str) -> bool:
+    """Heuristic: if the URL does NOT end with /sse, treat as Streamable HTTP."""
+    return not url.rstrip("/").endswith("/sse")
+
+
 def inspect_mcp_tools(base_url: str) -> Tuple[str, List[str]]:
-    """Connect to an MCP server and return (description, tool_names)."""
-    inspector = MCPInspector(base_url)
-    inspector.connect()
-    init_resp = inspector.initialize()
-    tools_resp = inspector.list_tools()
+    """Connect to an MCP server and return (description, tool_names).
+
+    Automatically selects Streamable HTTP or legacy SSE transport based on
+    the URL pattern.  URLs ending in ``/sse`` use the legacy SSE transport;
+    all other URLs use Streamable HTTP.
+    """
+    if _is_streamable_http(base_url):
+        inspector = MCPStreamableHTTPInspector(base_url)
+        init_resp = inspector.initialize()
+        tools_resp = inspector.list_tools()
+    else:
+        inspector = MCPSSEInspector(base_url)
+        inspector.connect()
+        init_resp = inspector.initialize()
+        tools_resp = inspector.list_tools()
 
     description = ""
     try:
