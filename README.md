@@ -3,7 +3,7 @@
 <div align="center">
 <h1>[ICML 2026] ToolShield: A Package to Guard Your Agent</h1>
 
-<p>🏆 <b>Spotlight</b> at the <b>AI4GOOD Workshop @ ICML 2026</b></p>
+<p><b>Accepted to the ICML 2026 main conference</b> &nbsp;·&nbsp; 🏆 additionally selected as a <b>Spotlight</b> at the AI4GOOD Workshop @ ICML 2026</p>
 
 [![PyPI](https://img.shields.io/pypi/v/toolshield?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/toolshield/) [![Paper](https://img.shields.io/badge/arXiv-2602.13379-b31b1b?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2602.13379) [![Homepage](https://img.shields.io/badge/Homepage-4d8cd8?style=for-the-badge&logo=google-chrome&logoColor=white)](https://unsafer-in-many-turns.github.io) [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE) [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-FFD21E?style=for-the-badge)](https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk) [![Downloads](https://img.shields.io/pepy/dt/toolshield?style=for-the-badge&logo=pypi&logoColor=white&color=green)](https://pepy.tech/projects/toolshield)
 
