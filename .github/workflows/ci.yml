@@ -27,3 +27,90 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: pytest tests/ -v --tb=short
         if: hashFiles('tests/') != ''
+
+  # Build the wheel from a clean git checkout and assert that the artifacts the
+  # public API depends on are actually shipped. Guards against issue #4, where
+  # untracked-on-disk files (mcp_scan.py, experience_store.py, several
+  # experiences/ subdirs) leaked into PyPI 0.1.2 — and conversely, where a file
+  # the API imports could silently disappear from the wheel after a refactor.
+  wheel-contents:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build wheel from clean checkout
+        run: |
+          pip install build
+          # Build from a fresh export so untracked working-tree files cannot
+          # influence the artifact (mirrors what `python -m build` does in CI
+          # for a freshly-cloned repo).
+          mkdir -p /tmp/clean && git archive HEAD | tar -x -C /tmp/clean
+          cd /tmp/clean && python -m build --wheel --outdir "$GITHUB_WORKSPACE/dist"
+      - name: Assert required files are in wheel
+        run: |
+          python - <<'PY'
+          import sys, zipfile, glob
+          wheels = glob.glob("dist/*.whl")
+          assert len(wheels) == 1, f"expected exactly one wheel, got {wheels}"
+          names = set(zipfile.ZipFile(wheels[0]).namelist())
+
+          required = {
+              "toolshield/__init__.py",
+              "toolshield/cli.py",
+              "toolshield/inspector.py",
+              "toolshield/experience_store.py",
+              "toolshield/mcp_scan.py",
+              "toolshield/experiences/claude-sonnet-4.5/filesystem-mcp.json",
+              "toolshield/experiences/claude-sonnet-4.5/gmail-mcp.json",
+              "toolshield/experiences/claude-sonnet-4.5/notion-mcp.json",
+              "toolshield/experiences/claude-sonnet-4.5/playwright-mcp.json",
+              "toolshield/experiences/claude-sonnet-4.5/postgres-mcp.json",
+              "toolshield/experiences/claude-sonnet-4.5/terminal-mcp.json",
+          }
+          missing = sorted(required - names)
+          if missing:
+              print("Missing files in wheel:")
+              for m in missing:
+                  print(f"  - {m}")
+              sys.exit(1)
+
+          # The exclude list in pyproject.toml is load-bearing; if it stops
+          # working, accidental research artifacts (other model dirs) would
+          # ship to PyPI. Fail loudly instead of silently bloating the wheel.
+          forbidden_prefixes = (
+              "toolshield/experiences/deepseek-",
+              "toolshield/experiences/gemini-",
+              "toolshield/experiences/gpt-",
+              "toolshield/experiences/qwen",
+              "toolshield/experiences/seed-",
+          )
+          leaked = sorted(n for n in names if n.startswith(forbidden_prefixes))
+          if leaked:
+              print("Excluded experience files leaked into wheel:")
+              for n in leaked:
+                  print(f"  - {n}")
+              sys.exit(1)
+
+          print(f"OK: {wheels[0]} contains all required files and no excluded ones.")
+          PY
+      - name: Smoke test installed wheel
+        run: |
+          pip install dist/*.whl
+          python - <<'PY'
+          # Reproduces the failure mode reported in issue #4: `toolshield auto`
+          # could not even import because mcp_scan was missing from the wheel.
+          import toolshield
+          from toolshield import ExperienceStore, MCPInspector, load_experiences  # noqa: F401
+          from toolshield import mcp_scan  # noqa: F401
+          from toolshield.experience_store import ExperienceStore as ES  # noqa: F401
+
+          bundled = ExperienceStore.list_bundled()
+          assert "filesystem-mcp" in bundled, bundled
+          assert "gmail-mcp" in bundled, bundled
+          store = ExperienceStore()
+          store.load_bundled("filesystem-mcp")
+          assert len(store) > 0, "filesystem-mcp loaded zero experiences"
+          print(f"version={toolshield.__version__} bundled={bundled} loaded={len(store)}")
+          PY
