@@ -39,7 +39,7 @@ def is_port_open(port, timeout=0.5):
         except (ConnectionRefusedError, OSError, socket.timeout):
             try:
                 s.close()
-            except:
+            except OSError:
                 pass
     return False
 
