@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "toolshield"
-version = "0.1.1"
+version = "0.1.3"
 description = "ToolShield: Training-Free Defense for Tool-Using AI Agents"
 readme = "README.md"
 license = "MIT"
@@ -47,6 +47,19 @@ Dataset = "https://huggingface.co/datasets/CHATS-Lab/MT-AgentRisk"
 
 [tool.hatch.build.targets.wheel]
 packages = ["toolshield"]
+# Defends against past mistakes where untracked local files leaked into
+# wheels (see issue #4). Hatchling's default is "include everything under
+# the package dir"; ``include`` adds but does not restrict, so the
+# defensive primitive here is ``exclude``. We list every experience
+# subdirectory we are NOT shipping by name so a contributor with extra
+# research artifacts on disk cannot accidentally publish them.
+exclude = [
+    "toolshield/experiences/deepseek-v3.2",
+    "toolshield/experiences/gemini-3-flash-preview",
+    "toolshield/experiences/gpt-5.2",
+    "toolshield/experiences/qwen3-coder-plus",
+    "toolshield/experiences/seed-1.6",
+]
 
 [tool.ruff]
 target-version = "py310"
