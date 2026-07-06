@@ -68,6 +68,26 @@ export SERVER_HOST="localhost"
 bash agentrisk/start_mcp_servers.sh
 ```
 
+The start scripts in `agentrisk/mcp_server/` work out of the box on any
+machine: server binaries are resolved from `PATH`/`npx`, and the workspace
+falls back to a user-writable directory when you are not root. Everything
+machine-specific can be overridden via environment variables:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MCP_FILESYSTEM_PORT` | `9090` | Filesystem server port |
+| `MCP_POSTGRES_PORT` | `9091` | Postgres server port |
+| `MCP_PLAYWRIGHT_PORT` | `9092` | Playwright server port |
+| `MCP_NOTION_PORT` | `9097` | Notion server port |
+| `SHARED_WORKSPACE_DIR` | `/mnt/shared_workspace` | Shared workspace (falls back to `$TMPDIR/toolshield_shared_workspace` if not writable) |
+| `AGENT_WORKSPACE_DIR` | `/workspace` | Agent-visible workspace path (bind mount as root, symlink otherwise) |
+| `FILESYSTEM_MCP_CMD` | `npx -y @modelcontextprotocol/server-filesystem` | Filesystem MCP command |
+| `FILESYSTEM_ALLOWED_DIRS` | `/root <shared> <workspace> /tmp /var /etc` | Directories the filesystem server may access |
+| `POSTGRES_DB_URL` | `postgresql://postgres:password@localhost:5432/postgres` | Database connection string |
+| `POSTGRES_MCP_EXEC` | `postgres-mcp` from `PATH` | Postgres MCP binary (`pip install postgres-mcp`) |
+| `PLAYWRIGHT_MCP_CMD` | `npx -y @playwright/mcp` | Playwright MCP command |
+| `PLAYWRIGHT_BROWSERS_PATH` | Playwright's per-user default | Browser binaries location |
+
 ### 4. Agent Configuration
 
 Edit `agentrisk/agent_config/config.toml`:
