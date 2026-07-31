@@ -575,7 +575,10 @@ def reset_services(hostname: str, dependencies: List[str]):
 def init_task_env(runtime: Runtime, hostname: str, env_llm_config: LLMConfig, task_path: str):
     # copy ./utils to /utils
     utils_path = os.path.join(task_path, 'utils/')
-    runtime.copy_to(host_src=utils_path, sandbox_dest='/utils/', recursive=True)
+    if os.path.exists(utils_path):
+        runtime.copy_to(host_src=utils_path, sandbox_dest='/utils/', recursive=True)
+    else:
+        logger.warning(f"utils directory not found at {utils_path}, skipping copy.")
     
     # copy ./workspace to /workspace (if it exists)
     workspace_path = os.path.join(task_path, 'workspace/')
@@ -599,24 +602,32 @@ def init_task_env(runtime: Runtime, hostname: str, env_llm_config: LLMConfig, ta
     else:
         logger.warning(f"task.md not found at {task_md_path}, skipping copy to /instruction/.")
     
-    # encrypt the evaluator.py file
-    command = "python /utils/encrypt.py && rm /utils/evaluator.py /utils/encrypt.py"
-    obs = runtime.run_action(CmdRunAction(command))
-    assert obs.exit_code == 0
+    # encrypt the evaluator.py file (legacy TheAgentCompany interface; MT-AgentRisk
+    # task packages do not ship utils/encrypt.py, so skip when absent)
+    if os.path.exists(os.path.join(task_path, 'utils', 'encrypt.py')):
+        command = "python /utils/encrypt.py && rm /utils/evaluator.py /utils/encrypt.py"
+        obs = runtime.run_action(CmdRunAction(command))
+        assert obs.exit_code == 0
+    else:
+        logger.info("utils/encrypt.py not found in task package, skipping evaluator encryption.")
 
-    command = (
-        f"SERVER_HOSTNAME={hostname} "
-        f"LITELLM_API_KEY={env_llm_config.api_key} "
-        f"LITELLM_BASE_URL={env_llm_config.base_url} "
-        f"LITELLM_MODEL={env_llm_config.model} "
-        "bash /utils/init.sh"
-    )
-    action = CmdRunAction(command=command)
-    action.set_hard_timeout(900)
-    logger.info(action, extra={'msg_type': 'ACTION'})
-    obs = runtime.run_action(action)
-    logger.info(obs, extra={'msg_type': 'OBSERVATION'})
-    assert obs.exit_code == 0
+    # run per-task init script (legacy interface; skip when the task does not provide one)
+    if os.path.exists(os.path.join(task_path, 'utils', 'init.sh')):
+        command = (
+            f"SERVER_HOSTNAME={hostname} "
+            f"LITELLM_API_KEY={env_llm_config.api_key} "
+            f"LITELLM_BASE_URL={env_llm_config.base_url} "
+            f"LITELLM_MODEL={env_llm_config.model} "
+            "bash /utils/init.sh"
+        )
+        action = CmdRunAction(command=command)
+        action.set_hard_timeout(900)
+        logger.info(action, extra={'msg_type': 'ACTION'})
+        obs = runtime.run_action(action)
+        logger.info(obs, extra={'msg_type': 'OBSERVATION'})
+        assert obs.exit_code == 0
+    else:
+        logger.info("utils/init.sh not found in task package, skipping init script.")
 
 def run_solver(runtime: Runtime, task_name: str, config: OpenHandsConfig, dependencies: List[str],
                save_final_state: bool, state_dir: str,
